@@ -1,0 +1,20 @@
+{
+  "name": "ovm-contracts",
+  "version": "0.1.0",
+  "description": "OVM contracts",
+  "main": "index.js",
+  "directories": {
+    "test": "test",
+    "contracts": "contracts"
+  },
+  "scripts": {
+    "build": "truffle compile",
+    "develop": "truffle develop",
+    "test": "npm run build && truffle test"
+  },
+  "author": { 
+    "name": "Crypteconomics Lab",
+    "url": "https://www.cryptoeconomicslab.com"
+  },
+  "license": "Apache-2.0"
+}
