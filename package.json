@@ -10,6 +10,7 @@
   "scripts": {
     "build": "truffle compile",
     "develop": "truffle develop",
+    "clean": "rm -rf build",
     "test": "npm run build && truffle test"
   },
   "author": { 

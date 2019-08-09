@@ -1,0 +1,27 @@
+pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
+
+import {DataTypes as types} from "./DataTypes.sol";
+
+library Utils {
+    function getPropertyId(types.Property memory _property) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_property.predicate, _property.input));
+    }
+
+    function isEmptyClaim(types.ClaimStatus memory _claimStatus) public pure returns (bool) {
+        return _claimStatus.property.predicate == address(0x0)
+            && keccak256(_claimStatus.property.input) == bytes32("")
+            && _claimStatus.decidedAfter == 0
+            && _claimStatus.numProvenContradictions == 0;
+    }
+
+    function getContradictionId(types.Contradiction memory _contradiction) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_contradiction.property, _contradiction.counterProperty));
+    }
+
+    function getClaimId(types.Contradiction[] memory _contradictingClaim) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_contradictingClaim.property, _contradictingClaim.counterProperty));
+    }
+
+}
+
