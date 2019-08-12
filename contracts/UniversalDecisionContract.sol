@@ -5,12 +5,18 @@ pragma experimental ABIEncoderV2;
 import "./Utils.sol";
 import {DataTypes as types} from "./DataTypes.sol";
 
+contract Predicate {
+  function verifyImplication(bytes memory, types.ImplicationProofElement memory) public returns (bool) {}
+  function verifyContradiction(types.Property memory, types.Property memory, bytes memory) public returns (bool) {}
+}
+
 contract UniversalDecisionContract {
   uint DISPUTE_PERIOD = 7;
   mapping(bytes32 => types.ClaimStatus) public claims;
   mapping(bytes32 => bool) contradictions;
+  enum RemainingClaimIndex { Property, CounterProperty }
 
-  function isWhiteListedProperty(types.Property memory _property) returns (bool) {
+  function isWhiteListedProperty(types.Property memory _property) private returns (bool) {
         return true;
     }
 
@@ -38,7 +44,7 @@ contract UniversalDecisionContract {
         claims[decidedPropertyId].decidedAfter = block.number - 1;
     } else {
       //when decision is false -- delete its claim (all fields with this key got initialized)
-      delete claims[_decidedPropertyId];
+      delete claims[decidedPropertyId];
     }
   }
 
@@ -48,21 +54,22 @@ contract UniversalDecisionContract {
   ) public returns (bool) {
     if (_implicationProof.length == 1) {
         // properties are always implications of themselves 
-        return _rootPremise == _implicationProof[0].implication;
+        return _rootPremise.predicate == _implicationProof[0].implication.predicate
+            && keccak256(_rootPremise.input) == keccak256(_implicationProof[0].implication.input);    
     }
     // check the first implication (i.e. with the rootPremise)
-    require(Utils.isWhitelistedProperty(_rootPremise)); // make sure all properties are on the whitelist 
-    require(_rootPremise.predicate.verifyImplication(_rootPremise.input, _implicationProof[0])); 
-    for (const i = 0; i < _implicationProof.length -1; i++;) {
-        types.Property premise = _implicationProof[i].implecation
-        types.ImplicationProofElement implication = _implicationProof[i+1];
-        require(Utils.isWhitelistedProperty(premise));
+    require(isWhiteListedProperty(_rootPremise)); // make sure all properties are on the whitelist 
+    require(Predicate(_rootPremise.predicate).verifyImplication(_rootPremise.input, _implicationProof[1])); 
+    for (uint i = 0; i < _implicationProof.length -1; i++) {
+        types.Property memory premise = _implicationProof[i].implication;
+        types.ImplicationProofElement memory implication = _implicationProof[i+1];
+        require(isWhiteListedProperty(premise));
 
         //if this is the implication's conclusion property, also check that it is in fact whitelisted 
         if (i == _implicationProof.length - 1) {
-            require(Utils.isWhitelistedProperty(implication));
+            require(isWhiteListedProperty(_implicationProof[i].implication));
         }
-        require(premise.predicate.call(bytes4(keccak256(verifyImplication(premise.input, implication)))));
+        require(Predicate(premise.predicate).verifyImplication(premise.input, implication));
     }
   }
 
@@ -75,9 +82,9 @@ contract UniversalDecisionContract {
   ) public returns (bool) {
     require(verifyImplicationProof(_root1, _implicationProof1));
     require(verifyImplicationProof(_root2, _implicationProof2));
-    types.Property implecation1 = _implicationProof1[_implicationProof1.length - 1].implecation;
-    types.Property implecation2 = _implicationProof2[_implicationProof2.length - 1].implecation;
-    require(implication1.predicate.call(bytes4(keccak256(verifyContradiction(implication1, implication2, _contradictionWitness)))));
+    types.Property memory implication1 = _implicationProof1[_implicationProof1.length - 1].implication;
+    types.Property memory implication2 = _implicationProof2[_implicationProof2.length - 1].implication;
+    require(Predicate(implication1.predicate).verifyContradiction(implication1, implication2, _contradictionWitness));
   }
 
   function proveClaimContradictsDecision(
@@ -87,13 +94,13 @@ contract UniversalDecisionContract {
     types.ImplicationProofElement[] memory _contradictionImplicationProof,
     bytes memory _contradictionWitness
   ) public {
-    bytes21 decidedPropertyId = Utils.getPropertyId(_decidedProperty);
-    bytes32 contraditingClaimId = Utils.getPropertyId(_contradictingClaim)
+    bytes32 decidedPropertyId = Utils.getPropertyId(_decidedProperty);
+    bytes32 contraditingClaimId = Utils.getPropertyId(_contradictingClaim);
 
     // make sure the decided claim is decided 
-    require(isDecided(decidedPropertyId));
+    require(decidedPropertyId == bytes32(""));
     //make sure the two properties contradict one another 
-    require(verifyContradictingImplications(_decidedProperty, _decidedImplicationProof, _contradictingClaim, _contradictingImplicationProof, _contradictionWitness));
+    require(verifyContradictingImplications(_decidedProperty, _decidedImplicationProof, _contradictingClaim, _contradictionImplicationProof, _contradictionWitness));
 
     //delete the contradicting claim
     delete claims[contraditingClaimId]; 
@@ -106,14 +113,14 @@ contract UniversalDecisionContract {
     bytes memory _contradictionWitness
   ) public {
     // get the unique ID corresponding to this contradiction
-    bytes32 contradictionId = Utils.getContradictionId(_contradiction)
-    propertyIds = [Utils.getPropertyId(_contradiction[0].property), getClaimId(_contradiction[1])]
+    bytes32 contradictionId = Utils.getContradictionId(_contradiction);
+    bytes32[2] memory propertyIds = [Utils.getPropertyId(_contradiction.property), Utils.getPropertyId(_contradiction.counterProperty)];
 
     // make sure both cliams have been made and not decided false 
-    require(!Utils.isEmptyClaim(claims[propertyIds[0]]) && !Utils.isEmptyClaim(claims[propertyIds[1]]);
+    require(!Utils.isEmptyClaim(claims[propertyIds[0]]) && !Utils.isEmptyClaim(claims[propertyIds[1]]));
 
     // make sure the contradicting properties have contradicting implications
-    require(verifyContradictingImplications(_contradiction[0], _implicationProof0, _contradiction[1], _implicationProof1, _contradictionWitness));
+    require(verifyContradictingImplications(_contradiction.property, _implicationProof0, _contradiction.counterProperty, _implicationProof1, _contradictionWitness));
 
     // increment the number of contradictions
     claims[propertyIds[0]].numProvenContradictions += 1;
@@ -125,14 +132,23 @@ contract UniversalDecisionContract {
 
   function removeContradiction(
     types.Contradiction memory _contradiction,
-    uint remainingClaimIndex
+    RemainingClaimIndex _remainingClaimIndex // 0:xxx 1:xxx 
   ) public {
-    // get the claims and their Ids
-    types.Contradiction remainingClaim = _contradiction[remainingClaimIndex];
-    bytes32 remainingClaimId = getPropertyId(remainingClaim.property);
-    types.Contradiction falsifiedClaim = _contradiction[!remainingClaimIndex];
-    bytes32 falsifiedClaimId = getPropertyId(falsifiedClaim.property);
-
+    bytes32 falsifiedClaimId; 
+    bytes32 remainingClaimId;
+    // get the claims and their Ids when property is the true one 
+    if (RemainingClaimIndex.Property == _remainingClaimIndex) {
+        types.Property memory remainingClaim = _contradiction.property;
+        remainingClaimId = Utils.getPropertyId(remainingClaim);
+        types.Property memory falsifiedClaim = _contradiction.counterProperty;
+        falsifiedClaimId = Utils.getPropertyId(falsifiedClaim);
+    } else {
+      types.Property memory remainingClaim = _contradiction.counterProperty;
+      remainingClaimId = Utils.getPropertyId(remainingClaim);
+      types.Property memory falsifiedClaim = _contradiction.property;
+      falsifiedClaimId = Utils.getPropertyId(falsifiedClaim);
+    }
+    
     // get the contradiction Id
     bytes32 contradictionId = Utils.getContradictionId(_contradiction);
 

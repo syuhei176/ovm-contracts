@@ -16,11 +16,7 @@ library Utils {
     }
 
     function getContradictionId(types.Contradiction memory _contradiction) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_contradiction.property, _contradiction.counterProperty));
-    }
-
-    function getClaimId(types.Contradiction[] memory _contradictingClaim) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_contradictingClaim.property, _contradictingClaim.counterProperty));
+        return keccak256(abi.encodePacked(getPropertyId(_contradiction.property), getPropertyId(_contradiction.counterProperty)));
     }
 
 }
