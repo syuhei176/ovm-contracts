@@ -10,11 +10,15 @@
   "scripts": {
     "build": "truffle compile",
     "develop": "truffle develop",
+    "clean": "rm -rf build",
     "test": "npm run build && truffle test"
   },
-  "author": { 
+  "author": {
     "name": "Crypteconomics Lab",
     "url": "https://www.cryptoeconomicslab.com"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "truffle": "^5.0.31"
+  }
 }

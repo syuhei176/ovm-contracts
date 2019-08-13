@@ -15,13 +15,11 @@ contract DataTypes {
     struct ClaimStatus {
         Property property;
         uint numProvenContradictions;
-        uint decidedAfter;
+        uint decidedAfter; // block number where the claims are decided  
     }
 
     struct ImplicationProofElement {
         Property implication;
         bytes[] witness;
     }
-
-    ImplicationProofElement[] ImplicationProof;
 }
