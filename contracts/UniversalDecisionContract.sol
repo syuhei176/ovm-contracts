@@ -43,7 +43,7 @@ contract UniversalDecisionContract {
     if (_decision) {
         claims[decidedPropertyId].decidedAfter = block.number - 1;
     } else {
-      //when decision is false -- delete its claim (all fields with this key got initialized)
+      // when decision is false -- delete its claim (all fields with this key got initialized)
       delete claims[decidedPropertyId];
     }
   }
@@ -65,7 +65,7 @@ contract UniversalDecisionContract {
         types.ImplicationProofElement memory implication = _implicationProof[i+1];
         require(isWhiteListedProperty(premise));
 
-        //if this is the implication's conclusion property, also check that it is in fact whitelisted 
+        // if this is the implication's conclusion property, also check that it is in fact whitelisted 
         if (i == _implicationProof.length - 1) {
             require(isWhiteListedProperty(_implicationProof[i].implication));
         }
@@ -99,10 +99,9 @@ contract UniversalDecisionContract {
 
     // make sure the decided claim is decided 
     require(decidedPropertyId == bytes32(""));
-    //make sure the two properties contradict one another 
+    // make sure the two properties contradict one another 
     require(verifyContradictingImplications(_decidedProperty, _decidedImplicationProof, _contradictingClaim, _contradictionImplicationProof, _contradictionWitness));
-
-    //delete the contradicting claim
+    // delete the contradicting claim
     delete claims[contraditingClaimId]; 
   }
 
@@ -134,21 +133,21 @@ contract UniversalDecisionContract {
     types.Contradiction memory _contradiction,
     RemainingClaimIndex _remainingClaimIndex // 0:xxx 1:xxx 
   ) public {
-    bytes32 falsifiedClaimId; 
-    bytes32 remainingClaimId;
+    bytes32 remainingClaimId; 
+    bytes32 falsifiedClaimId;
+
     // get the claims and their Ids when property is the true one 
     if (RemainingClaimIndex.Property == _remainingClaimIndex) {
         types.Property memory remainingClaim = _contradiction.property;
-        remainingClaimId = Utils.getPropertyId(remainingClaim);
         types.Property memory falsifiedClaim = _contradiction.counterProperty;
         falsifiedClaimId = Utils.getPropertyId(falsifiedClaim);
     } else {
-      types.Property memory remainingClaim = _contradiction.counterProperty;
-      remainingClaimId = Utils.getPropertyId(remainingClaim);
-      types.Property memory falsifiedClaim = _contradiction.property;
-      falsifiedClaimId = Utils.getPropertyId(falsifiedClaim);
+        types.Property memory remainingClaim = _contradiction.counterProperty;
+        types.Property memory falsifiedClaim = _contradiction.property;
     }
-    
+    remainingClaimId = Utils.getPropertyId(remainingClaim);
+    falsifiedClaimId = Utils.getPropertyId(falsifiedClaim);
+
     // get the contradiction Id
     bytes32 contradictionId = Utils.getContradictionId(_contradiction);
 
