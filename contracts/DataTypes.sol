@@ -15,7 +15,7 @@ contract DataTypes {
     struct ClaimStatus {
         Property property;
         uint numProvenContradictions;
-        uint decidedAfter; // block number where the claims are decided  
+        uint decidedAfter; // block number where the claims are decided
     }
 
     struct ImplicationProofElement {
@@ -31,7 +31,7 @@ contract DataTypes {
     struct Challenge {
         Checkpoint challengedCheckpoint;
         Checkpoint challengingCheckpoint;
-    } 
+    }
     struct StateObject {
         address predicateAddress;
         bytes data;
