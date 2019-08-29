@@ -71,11 +71,18 @@ contract DepostiAndExit {
             newStart = oldStart;
         }
         uint256 newEnd = totalDeposited + _amount;
-        depositedRanges[newEnd] = types.Range({start:newStart, end: newEnd});
+        depositedRanges[newEnd] = types.Range({start:newStart, end:newEnd});
         totalDeposited += _amount;
     }
 
     function removeDepositedRange(types.Range memory range, uint256 depositedRangeId) public {
+        types.Range memory encompasingRange = depositedRanges[depositedRangeId];
+        if (range.start != encompasingRange.start) {
+            types.Range memory leftSplitRange = types.Range({start:encompasingRange.start, end:range.start});
+            depositedRanges[leftSplitRange.end] = leftSplitRange;
+            return;
+        }
+        delete depositedRanges[encompasingRange.end];
     }
 
     function startCheckpoint(
