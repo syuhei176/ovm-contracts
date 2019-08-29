@@ -29,6 +29,7 @@ contract DepostiAndExit {
     CommitmentContract public commitmentContract;
     uint256 public totalDeposited;
     mapping (bytes32 => types.CheckpointStatus) public checkpoints;
+    mapping (uint256 => types.Range) public depositedRanges;
 
     constructor(address _erc20, address _commitmentContract) public {
         erc20 = ERC20(_erc20);
@@ -60,6 +61,18 @@ contract DepostiAndExit {
     }
 
     function extendDepositedRanges(uint256 _amount) public {
+        uint256 oldStart = depositedRanges[totalDeposited].start;
+        uint256 oldEnd = depositedRanges[totalDeposited].end;
+        uint256 newStart;
+        if (oldStart == 0 && oldEnd == 0) {
+            newStart = totalDeposited;
+        } else {
+            delete depositedRanges[oldEnd];
+            newStart = oldStart;
+        }
+        uint256 newEnd = totalDeposited + _amount;
+        depositedRanges[newEnd] = types.Range({start:newStart, end: newEnd});
+        totalDeposited += _amount;
     }
 
     function removeDepositedRange(types.Range memory range, uint256 depositedRangeId) public {
