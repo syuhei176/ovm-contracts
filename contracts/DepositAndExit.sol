@@ -28,7 +28,7 @@ contract DepostiAndExit {
     function finalizeExit(types.Checkpoint memory _exit, uint256 depositedRangeId) public {
     }
 
-  　function deprecateExit(types.Checkpoint memory _exit) public {  
+    function deprecateExit(types.Checkpoint memory _exit) public {  
     }
     
     function challengeCheckpoint(types.Challenge memory _challenge) public {

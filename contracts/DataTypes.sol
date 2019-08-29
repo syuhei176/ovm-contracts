@@ -29,8 +29,8 @@ contract DataTypes {
     }
 
     struct Challenge {
-        types.Checkpoint challengedCheckpoint;
-        types.Checkpoint challengingCheckpoint;
+        Checkpoint challengedCheckpoint;
+        Checkpoint challengingCheckpoint;
     } 
     struct StateObject {
         address predicateAddress;

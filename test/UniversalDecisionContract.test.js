@@ -44,7 +44,7 @@ describe('UniversalDecisionContract', () => {
       assert.equal(claim.predicate, property.predicate);
       assert.equal(claim.input, property.input);
     });
-    it('fails to add an already claimed property', async () => {
+    it('fails to add an already claimed property and throws Error', async () => {
       const property = {
         predicate: testPredicate.address,
         input: '0x01'
@@ -52,7 +52,7 @@ describe('UniversalDecisionContract', () => {
       // claim a property
       await decisionContract.claimProperty(property);
       // check if the second call of the claimProperty function throws an error 
-      assert(expect(decisionContract.claimProperty(property)).to.eventually.be.rejected);
+      assert(await expect(decisionContract.claimProperty(property)).to.be.rejectedWith(Error));
     });
   });
 
