@@ -1,37 +1,23 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
-/* internal contract imports */
+/* Internal Contract Imports */
 import "./Utils.sol";
 import {DataTypes as types} from "./DataTypes.sol";
 
+/* Imports to run a test*/
 contract Predicate {
     function verifyImplication(bytes memory, types.ImplicationProofElement memory) public returns (bool) {}
     function verifyContradiction(types.Property memory, types.Property memory, bytes memory) public returns (bool) {}
 }
 
-contract UniversalDecisionContract {
+contract UniversalAdjudicationContract {
 
     uint DISPUTE_PERIOD = 7;
     mapping (bytes32 => types.ClaimStatus) public claims;
     mapping (bytes32 => bool) contradictions;
     enum RemainingClaimIndex {Property, CounterProperty}
 
-    function isWhiteListedProperty(types.Property memory _property) private returns (bool) {
-        return true; // Always return true until we know what to whitelist
-    }
-
-    function isDecided(types.Property memory _property) private returns (bool) {
-        return claims[Utils.getPropertyId(_property)].decidedAfter < block.number;
-    }
-
-    function getClaim(bytes32 claimId) public view returns (types.Property memory) {
-        return claims[claimId].property;
-    }
-
-    function getPropertyId(types.Property memory _property) public view returns (bytes32) {
-        return Utils.getPropertyId(_property);
-    }
 
     function claimProperty(types.Property memory _claim) public {
         // get the id of this property
@@ -175,6 +161,24 @@ contract UniversalDecisionContract {
 
         // decrement the remaining claim numProvenContradictions
         claims[remainingClaimId].numProvenContradictions -= 1;
+    }
+
+
+    /* Helpers */
+    function isWhiteListedProperty(types.Property memory _property) private returns (bool) {
+        return true; // Always return true until we know what to whitelist
+    }
+
+    function isDecided(types.Property memory _property) private returns (bool) {
+        return claims[Utils.getPropertyId(_property)].decidedAfter < block.number;
+    }
+
+    function getClaim(bytes32 claimId) public view returns (types.Property memory) {
+        return claims[claimId].property;
+    }
+
+    function getPropertyId(types.Property memory _property) public view returns (bytes32) {
+        return Utils.getPropertyId(_property);
     }
 
 }

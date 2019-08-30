@@ -8,15 +8,15 @@ contract DataTypes {
     }
 }
 
-contract UniversalDecisionContract {
+contract UniversalAdjudicationContract {
     function decideProperty(DataTypes.Property memory, bool) public {}
 }
 
 contract TestPredicate {
-    address udcAddress;
+    address uacAddress;
 
-    constructor(address _udcAddress) public {
-        udcAddress = _udcAddress;
+    constructor(address _uacAddress) public {
+        uacAddress = _uacAddress;
     }
 
     struct TestPredicateInput {
@@ -33,7 +33,7 @@ contract TestPredicate {
     function decideTrue(TestPredicateInput memory _input) public {
         DataTypes.Property memory property = createPropertyFromInput(_input);
 
-        UniversalDecisionContract(udcAddress).decideProperty(property, true);
+        UniversalAdjudicationContract(uacAddress).decideProperty(property, true);
 
         emit ValueDecided(true, _input.value);
     }
@@ -41,7 +41,7 @@ contract TestPredicate {
     function decideFalse(TestPredicateInput memory _input) public {
         DataTypes.Property memory property = createPropertyFromInput(_input);
 
-        UniversalDecisionContract(udcAddress).decideProperty(property, false);
+        UniversalAdjudicationContract(uacAddress).decideProperty(property, false);
 
         emit ValueDecided(false, _input.value);
     }

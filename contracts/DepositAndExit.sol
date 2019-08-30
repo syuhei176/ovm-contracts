@@ -85,12 +85,6 @@ contract DepostiAndExit {
         delete depositedRanges[encompasingRange.end];
     }
 
-    function startCheckpoint(
-        types.Checkpoint memory _checkpoint,
-        bytes memory _inclusionProof,
-        uint256 _depositedRangeId
-    ) public {
-    }
 
     function startExit(types.Checkpoint memory _checkpoint) public {
     }
@@ -100,7 +94,7 @@ contract DepostiAndExit {
 
     function deprecateExit(types.Checkpoint memory _exit) public {  
     }
-    
+
     function challengeCheckpoint(types.Challenge memory _challenge) public {
     }
 
