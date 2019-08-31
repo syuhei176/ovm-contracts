@@ -34,7 +34,7 @@ contract UniversalAdjudicationContract {
 
     function decideProperty(types.Property memory _property, bool _decision) public {
         // only the prodicate can decide a claim
-        require(msg.sender == _property.predicate);
+        require(msg.sender == _property.predicateAddress);
         bytes32 decidedPropertyId = Utils.getPropertyId(_property);
 
         // if the decision is true, automatically decide its claim now
@@ -52,12 +52,12 @@ contract UniversalAdjudicationContract {
     ) public returns (bool) {
         if (_implicationProof.length == 1) {
             // properties are always implications of themselves
-            return _rootPremise.predicate == _implicationProof[0].implication.predicate
+            return _rootPremise.predicateAddress == _implicationProof[0].implication.predicateAddress
                 && keccak256(_rootPremise.input) == keccak256(_implicationProof[0].implication.input);
         }
         // check the first implication (i.e. with the rootPremise)
         require(isWhiteListedProperty(_rootPremise)); // make sure all properties are on the whitelist
-        require(Predicate(_rootPremise.predicate).verifyImplication(_rootPremise.input, _implicationProof[1]));
+        require(Predicate(_rootPremise.predicateAddress).verifyImplication(_rootPremise.input, _implicationProof[1]));
         for (uint i = 0; i < _implicationProof.length -1; i++) {
             types.Property memory premise = _implicationProof[i].implication;
             types.ImplicationProofElement memory implication = _implicationProof[i+1];
@@ -67,7 +67,7 @@ contract UniversalAdjudicationContract {
             if (i == _implicationProof.length - 1) {
                 require(isWhiteListedProperty(_implicationProof[i].implication));
             }
-            require(Predicate(premise.predicate).verifyImplication(premise.input, implication));
+            require(Predicate(premise.predicateAddress).verifyImplication(premise.input, implication));
         }
     }
 
@@ -82,7 +82,7 @@ contract UniversalAdjudicationContract {
         require(verifyImplicationProof(_root2, _implicationProof2));
         types.Property memory implication1 = _implicationProof1[_implicationProof1.length - 1].implication;
         types.Property memory implication2 = _implicationProof2[_implicationProof2.length - 1].implication;
-        require(Predicate(implication1.predicate).verifyContradiction(implication1, implication2, _contradictionWitness));
+        require(Predicate(implication1.predicateAddress).verifyContradiction(implication1, implication2, _contradictionWitness));
     }
 
     function proveClaimContradictsDecision(

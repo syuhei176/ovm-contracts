@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 contract DataTypes {
     struct Property {
-        address predicate;
+        address predicateAddress;
         bytes input;
     }
 
@@ -15,7 +15,7 @@ contract DataTypes {
     struct ClaimStatus {
         Property property;
         uint numProvenContradictions;
-        uint decidedAfter; // block number where the claims are decided
+        uint decidedAfter; // claims can be decided after this block number
     }
 
     struct ImplicationProofElement {
@@ -23,18 +23,9 @@ contract DataTypes {
         bytes[] witness;
     }
 
-    struct CheckpointStatus {
-        uint256 challengeableUntil;
-        uint256 outstandingChallenges;
-    }
-
     struct Challenge {
         Checkpoint challengedCheckpoint;
         Checkpoint challengingCheckpoint;
-    }
-    struct StateObject {
-        address predicateAddress;
-        bytes data;
     }
 
     struct Range {
@@ -42,7 +33,7 @@ contract DataTypes {
         uint256 end;
     }
     struct StateUpdate {
-        StateObject stateObject;
+        Property property;
         Range range;
         uint256 plasmaBlockNumber;
         address depositAddress;

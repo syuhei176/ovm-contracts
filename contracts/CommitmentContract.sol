@@ -8,7 +8,7 @@ import {DataTypes as types} from "./DataTypes.sol";
  * @notice This is mock commitment chain contract. Spec is http://spec.plasma.group/en/latest/src/02-contracts/commitment-contract.html
  */
 contract CommitmentContract{
-    // Event d(efinitions
+    // Event definitions
     event BlockSubmitted(
         bytes32 root
     );
@@ -17,6 +17,7 @@ contract CommitmentContract{
         emit BlockSubmitted(_root);
     }
 
+    // Predicate checks this
     function verifyInclusion(types.StateUpdate memory _stateUpdate, bytes memory _inclusionProof) public returns (bool) {
         // Always return true for now until we can verify inclusion proofs.
         return true;

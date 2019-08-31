@@ -1,10 +1,6 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
-/**
- * @title Deposit And Éxit Contract
- * @notice This is mock contract of Deposit Contract originally written by Plasma Group. Original sourcecodes are https://github.com/plasma-group/pigi/commits/master/packages/contracts/contracts/Deposit.sol
- **/
 
 /* External Imports */
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -13,34 +9,39 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 /* Internal Imports */
 import {DataTypes as types} from "./DataTypes.sol";
 import {CommitmentContract} from "./CommitmentContract.sol";
+import {UniversalAdjudicationContract} from "./UniversalAdjudicationContract.sol";
 
 contract DepostiAndExit {
     /* Events */
     event CheckpointFinalized(
-        bytes32 checkpoint
+        bytes32 checkpointId
     );
 
     event LogCheckpoint(
         types.Checkpoint checkpoint
     );
 
+    event ExitFinalized(
+        bytes32 exitId
+    );
+
     /* Public Variables and Mappings*/
     ERC20 public erc20;
     CommitmentContract public commitmentContract;
     uint256 public totalDeposited;
-    mapping (bytes32 => types.CheckpointStatus) public checkpoints;
     mapping (uint256 => types.Range) public depositedRanges;
+    mapping (bytes32 => types.Checkpoint) public checkpoints;
 
     constructor(address _erc20, address _commitmentContract) public {
         erc20 = ERC20(_erc20);
         commitmentContract = CommitmentContract(_commitmentContract);
     }
 
-    function deposit(uint256 _amount, types.StateObject memory _initialState) public {
+    function deposit(uint256 _amount, types.Property memory _initialState) public {
         erc20.transferFrom(msg.sender, address(this), _amount);
         types.Range memory depositRange = types.Range({start:totalDeposited, end:totalDeposited + _amount});
         types.StateUpdate memory stateUpdate = types.StateUpdate({
-            stateObject:_initialState,
+            property:_initialState,
             range: depositRange,
             plasmaBlockNumber: getLatestPlasmaBlockNumber(),
             depositAddress: address(this)
@@ -51,11 +52,6 @@ contract DepostiAndExit {
         });
         extendDepositedRanges(_amount);
         bytes32 checkpointId = getCheckpointId(checkpoint);
-        types.CheckpointStatus memory status = types.CheckpointStatus({
-            challengeableUntil: block.number - 1,
-            outstandingChallenges: 0
-        });
-        checkpoints[checkpointId] = status;
         emit CheckpointFinalized(checkpointId);
         emit LogCheckpoint(checkpoint);
     }
@@ -65,8 +61,10 @@ contract DepostiAndExit {
         uint256 oldEnd = depositedRanges[totalDeposited].end;
         uint256 newStart;
         if (oldStart == 0 && oldEnd == 0) {
+            // Creat a new range when the rightmost range has been removed
             newStart = totalDeposited;
         } else {
+            // Delete the old range and make a new one with the total length
             delete depositedRanges[oldEnd];
             newStart = oldStart;
         }
@@ -75,37 +73,53 @@ contract DepostiAndExit {
         totalDeposited += _amount;
     }
 
-    function removeDepositedRange(types.Range memory range, uint256 depositedRangeId) public {
-        types.Range memory encompasingRange = depositedRanges[depositedRangeId];
-        if (range.start != encompasingRange.start) {
-            types.Range memory leftSplitRange = types.Range({start:encompasingRange.start, end:range.start});
+    function removeDepositedRange(types.Range memory _range, uint256 _depositedRangeId) public {
+        types.Range memory encompasingRange = depositedRanges[_depositedRangeId];
+        if (_range.start != encompasingRange.start) {
+            types.Range memory leftSplitRange = types.Range({start:encompasingRange.start, end:_range.start});
             depositedRanges[leftSplitRange.end] = leftSplitRange;
             return;
         }
         delete depositedRanges[encompasingRange.end];
     }
 
-
-    function startExit(types.Checkpoint memory _checkpoint) public {
+    function finalizeCheckpoint(types.Checkpoint memory _checkpoint, uint256 _depositedRangeId) public {
+        require(UniversalAdjudicationContract.isDecided(_checkpoint.stateUpdate.property), "Checkpointing claim must be decided");
+        types.Checkpoint memory checkpoint = types.Checkpoint({
+            stateUpdate: _checkpoint.stateUpdate,
+            subrange: depositedRanges[_depositedRangeId]
+        });
+        bytes32 checkpointId = getCheckpointId(checkpoint);
+        emit CheckpointFinalized(checkpointId);
+        emit LogCheckpoint(_checkpoint);
     }
 
-    function finalizeExit(types.Checkpoint memory _exit, uint256 depositedRangeId) public {
+    function finalizeExit(types.Checkpoint memory _checkpoint, uint256 _depositedRangeId) public {
+        bytes32 checkpointId = getCheckpointId(_checkpoint);
+        // Check that we are authorized to finalize this exit
+        require(_checkpoint.stateUpdate.property.predicateAddress == msg.sender,"Exiting claim must be finalized by its predicate");
+        require(finalizeCheckpoint(_checkpoint, _depositedRangeId), "Checkpoint must be finalized to finalize an exit");
+        require(UniversalAdjudicationContract.isDecided(_checkpoint.stateUpdate.property), "Exit must be decided after this block");
+        require(isSubrange(_checkpoint.subrange, depositedRanges[_depositedRangeId]), "Exit must be of a depostied range (the one that has not been exited)");
+        // Remove the deposited range
+        removeDepositedRange(_checkpoint.range, _depositedRangeId);
+        //Transfer tokens to its predicate
+        uint256 amount = _checkpoint.subrange.end - _checkpoint.subrange.start;
+        erc20.transfer(_checkpoint.stateUpdate.property.predicateAddress, amount);
+        emit ExitFinalized(checkpointId);
     }
 
-    function deprecateExit(types.Checkpoint memory _exit) public {  
-    }
-
-    function challengeCheckpoint(types.Challenge memory _challenge) public {
-    }
-
-    function removeChallenge(types.Challenge memory _challenge) public {
-    }
 
     /* Helpers */
     function getLatestPlasmaBlockNumber() private returns (uint256) {
         return 0;
     }
+
     function getCheckpointId(types.Checkpoint memory _checkpoint) private pure returns (bytes32) {
-        return keccak256(abi.encode(_checkpoint.stateUpdate, _checkpoint.subrange));
+        return keccak256(abi.encodePacked(_checkpoint.stateUpdate, _checkpoint.subrange));
+    }
+
+    function isSubrange(types.Range memory _subrange, types.Range memory _surroundingRange) public pure returns (bool) {
+        return _subrange.start >= _surroundingRange.start && _subrange.end <= _surroundingRange.end;
     }
 }
