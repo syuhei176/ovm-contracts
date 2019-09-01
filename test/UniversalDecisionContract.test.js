@@ -1,7 +1,7 @@
 /* contract imports */
 const chai = require('chai');
 const {createMockProvider, deployContract, getWallets, solidity, link} = require('ethereum-waffle');
-const UniversalDecisionContract = require('../build/UniversalDecisionContract');
+const UniversalAdjudicationContract = require('../build/UniversalAdjudicationContract');
 const Utils = require('../build/Utils');
 const TestPredicate = require('../build/TestPredicate');
 const ethers =require('ethers');
@@ -11,7 +11,7 @@ chai.use(solidity);
 chai.use(require('chai-as-promised'));
 const {expect, assert} = chai;
 
-describe('UniversalDecisionContract', () => {
+describe('UniversalAdjudicationContract', () => {
   let provider = createMockProvider();
   let wallets = getWallets(provider);
   let wallet = wallets[0];
@@ -21,11 +21,11 @@ describe('UniversalDecisionContract', () => {
 
   before(async () => {
     utils = await deployContract(wallet, Utils, []);
-    link(UniversalDecisionContract, 'contracts/Utils.sol:Utils', utils.address);
+    link(UniversalAdjudicationContract, 'contracts/Utils.sol:Utils', utils.address);
   });
 
   beforeEach(async () => {
-    decisionContract = await deployContract(wallet, UniversalDecisionContract);
+    decisionContract = await deployContract(wallet, UniversalAdjudicationContract);
     testPredicate = await deployContract(wallet, TestPredicate, [decisionContract.address]);
   });
 
@@ -51,7 +51,7 @@ describe('UniversalDecisionContract', () => {
       };
       // claim a property
       await decisionContract.claimProperty(property);
-      // check if the second call of the claimProperty function throws an error 
+      // check if the second call of the claimProperty function throws an error
       assert(await expect(decisionContract.claimProperty(property)).to.be.rejectedWith(Error));
     });
   });
@@ -66,8 +66,8 @@ describe('UniversalDecisionContract', () => {
       const decidedPropertyId = await decisionContract.getPropertyId(property);
       const blockNumber = await provider.getBlockNumber()
       const decidedClaim = await decisionContract.claims(decidedPropertyId);
-      
-      //check the block number of newly decided property is equal to the claimed property's 
+
+      //check the block number of newly decided property is equal to the claimed property's
       assert.equal(decidedClaim.decidedAfter, blockNumber - 1);
     });
 
@@ -80,7 +80,7 @@ describe('UniversalDecisionContract', () => {
       const falsifiedPropertyId = await decisionContract.getPropertyId(property);
       const falsifiedClaim = await decisionContract.claims(falsifiedPropertyId);
 
-      // check the claimed property is deleted 
+      // check the claimed property is deleted
       assert(isEmptyClaimStatus(falsifiedClaim));
     })
   });
