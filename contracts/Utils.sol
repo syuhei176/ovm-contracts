@@ -5,11 +5,11 @@ import {DataTypes as types} from "./DataTypes.sol";
 
 library Utils {
     function getPropertyId(types.Property memory _property) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_property.predicate, _property.input));
+        return keccak256(abi.encodePacked(_property.predicateAddress, _property.input));
     }
 
     function isEmptyClaim(types.ClaimStatus memory _claimStatus) public pure returns (bool) {
-        return _claimStatus.property.predicate == address(0x0)
+        return _claimStatus.property.predicateAddress == address(0x0)
             && keccak256(_claimStatus.property.input) == keccak256(bytes(""))
             && _claimStatus.decidedAfter == 0
             && _claimStatus.numProvenContradictions == 0;

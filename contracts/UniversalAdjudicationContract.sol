@@ -1,41 +1,27 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
-/* internal contract imports */
+/* Internal Contract Imports */
 import "./Utils.sol";
 import {DataTypes as types} from "./DataTypes.sol";
 
+/* Imports to run a test*/
 contract Predicate {
     function verifyImplication(bytes memory, types.ImplicationProofElement memory) public returns (bool) {}
     function verifyContradiction(types.Property memory, types.Property memory, bytes memory) public returns (bool) {}
 }
 
-contract UniversalDecisionContract {
+contract UniversalAdjudicationContract {
+
     uint DISPUTE_PERIOD = 7;
-    mapping(bytes32 => types.ClaimStatus) public claims;
-    mapping(bytes32 => bool) contradictions;
-    enum RemainingClaimIndex { Property, CounterProperty }
+    mapping (bytes32 => types.ClaimStatus) public claims;
+    mapping (bytes32 => bool) contradictions;
+    enum RemainingClaimIndex {Property, CounterProperty}
 
-    function isWhiteListedProperty(types.Property memory _property) private returns (bool) {
-        return true; // Always return true until we know what to whitelist 
-    }
-
-    function isDecided(types.Property memory _property) private returns (bool) {
-        return claims[Utils.getPropertyId(_property)].decidedAfter < block.number;
-    }  
-
-    function getClaim(bytes32 claimId) public view returns (types.Property memory) {
-        return claims[claimId].property;
-    }
-
-    function getPropertyId(types.Property memory _property) public view returns (bytes32) {
-        return Utils.getPropertyId(_property);
-    }
 
     function claimProperty(types.Property memory _claim) public {
         // get the id of this property
         bytes32 claimedPropertyId = Utils.getPropertyId(_claim);
-        
         // make sure a claim on this property has not already been made
         require(Utils.isEmptyClaim(claims[claimedPropertyId]));
 
@@ -47,11 +33,11 @@ contract UniversalDecisionContract {
     }
 
     function decideProperty(types.Property memory _property, bool _decision) public {
-        // only the prodicate can decide a claim 
-        require(msg.sender == _property.predicate);
+        // only the prodicate can decide a claim
+        require(msg.sender == _property.predicateAddress);
         bytes32 decidedPropertyId = Utils.getPropertyId(_property);
 
-        // if the decision is true, automatically decide its claim now 
+        // if the decision is true, automatically decide its claim now
         if (_decision) {
             claims[decidedPropertyId].decidedAfter = block.number - 1;
         } else {
@@ -65,23 +51,23 @@ contract UniversalDecisionContract {
         types.ImplicationProofElement[] memory _implicationProof
     ) public returns (bool) {
         if (_implicationProof.length == 1) {
-            // properties are always implications of themselves 
-            return _rootPremise.predicate == _implicationProof[0].implication.predicate
-                && keccak256(_rootPremise.input) == keccak256(_implicationProof[0].implication.input);    
+            // properties are always implications of themselves
+            return _rootPremise.predicateAddress == _implicationProof[0].implication.predicateAddress
+                && keccak256(_rootPremise.input) == keccak256(_implicationProof[0].implication.input);
         }
         // check the first implication (i.e. with the rootPremise)
-        require(isWhiteListedProperty(_rootPremise)); // make sure all properties are on the whitelist 
-        require(Predicate(_rootPremise.predicate).verifyImplication(_rootPremise.input, _implicationProof[1])); 
+        require(isWhiteListedProperty(_rootPremise)); // make sure all properties are on the whitelist
+        require(Predicate(_rootPremise.predicateAddress).verifyImplication(_rootPremise.input, _implicationProof[1]));
         for (uint i = 0; i < _implicationProof.length -1; i++) {
             types.Property memory premise = _implicationProof[i].implication;
             types.ImplicationProofElement memory implication = _implicationProof[i+1];
             require(isWhiteListedProperty(premise));
 
-            // if this is the implication's conclusion property, also check that it is in fact whitelisted 
+            // if this is the implication's conclusion property, also check that it is in fact whitelisted
             if (i == _implicationProof.length - 1) {
                 require(isWhiteListedProperty(_implicationProof[i].implication));
             }
-            require(Predicate(premise.predicate).verifyImplication(premise.input, implication));
+            require(Predicate(premise.predicateAddress).verifyImplication(premise.input, implication));
         }
     }
 
@@ -96,7 +82,7 @@ contract UniversalDecisionContract {
         require(verifyImplicationProof(_root2, _implicationProof2));
         types.Property memory implication1 = _implicationProof1[_implicationProof1.length - 1].implication;
         types.Property memory implication2 = _implicationProof2[_implicationProof2.length - 1].implication;
-        require(Predicate(implication1.predicate).verifyContradiction(implication1, implication2, _contradictionWitness));
+        require(Predicate(implication1.predicateAddress).verifyContradiction(implication1, implication2, _contradictionWitness));
     }
 
     function proveClaimContradictsDecision(
@@ -108,12 +94,12 @@ contract UniversalDecisionContract {
         ) public {
         bytes32 contraditingClaimId = Utils.getPropertyId(_contradictingClaim);
 
-        // make sure the decided property is already decided before the current block number 
+        // make sure the decided property is already decided before the current block number
         require(isDecided(_decidedProperty));
-        // make sure the two properties contradict one another 
+        // make sure the two properties contradict one another
         require(verifyContradictingImplications(_decidedProperty, _decidedImplicationProof, _contradictingClaim, _contradictionImplicationProof, _contradictionWitness));
         // delete the contradicting claim
-        delete claims[contraditingClaimId]; 
+        delete claims[contraditingClaimId];
     }
 
     function proveUndecidedContradiction(
@@ -126,7 +112,7 @@ contract UniversalDecisionContract {
         bytes32 contradictionId = Utils.getContradictionId(_contradiction);
         bytes32[2] memory propertyIds = [Utils.getPropertyId(_contradiction.property), Utils.getPropertyId(_contradiction.counterProperty)];
 
-        // make sure both cliams have been made and not decided false 
+        // make sure both cliams have been made and not decided false
         require(!Utils.isEmptyClaim(claims[propertyIds[0]]) && !Utils.isEmptyClaim(claims[propertyIds[1]]));
 
         // make sure the contradicting properties have contradicting implications
@@ -142,14 +128,14 @@ contract UniversalDecisionContract {
 
     function removeContradiction(
         types.Contradiction memory _contradiction,
-        RemainingClaimIndex _remainingClaimIndex // 0:xxx 1:xxx 
+        RemainingClaimIndex _remainingClaimIndex // 0:xxx 1:xxx
         ) public {
-        bytes32 remainingClaimId; 
+        bytes32 remainingClaimId;
         bytes32 falsifiedClaimId;
         types.Property memory remainingClaim;
         types.Property memory falsifiedClaim;
 
-        // get the claims and their Ids when property is the true one 
+        // get the claims and their Ids when property is the true one
         if (RemainingClaimIndex.Property == _remainingClaimIndex) {
             remainingClaim = _contradiction.property;
             falsifiedClaim = _contradiction.counterProperty;
@@ -175,6 +161,24 @@ contract UniversalDecisionContract {
 
         // decrement the remaining claim numProvenContradictions
         claims[remainingClaimId].numProvenContradictions -= 1;
+    }
+
+
+    /* Helpers */
+    function isWhiteListedProperty(types.Property memory _property) private returns (bool) {
+        return true; // Always return true until we know what to whitelist
+    }
+
+    function isDecided(types.Property memory _property) public returns (bool) {
+        return claims[Utils.getPropertyId(_property)].decidedAfter < block.number;
+    }
+
+    function getClaim(bytes32 claimId) public view returns (types.Property memory) {
+        return claims[claimId].property;
+    }
+
+    function getPropertyId(types.Property memory _property) public view returns (bytes32) {
+        return Utils.getPropertyId(_property);
     }
 
 }

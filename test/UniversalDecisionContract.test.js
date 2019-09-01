@@ -1,7 +1,7 @@
 /* contract imports */
 const chai = require('chai');
 const {createMockProvider, deployContract, getWallets, solidity, link} = require('ethereum-waffle');
-const UniversalDecisionContract = require('../build/UniversalDecisionContract');
+const UniversalAdjudicationContract = require('../build/UniversalAdjudicationContract');
 const Utils = require('../build/Utils');
 const TestPredicate = require('../build/TestPredicate');
 const ethers =require('ethers');
@@ -11,48 +11,48 @@ chai.use(solidity);
 chai.use(require('chai-as-promised'));
 const {expect, assert} = chai;
 
-describe('UniversalDecisionContract', () => {
+describe('UniversalAdjudicationContract', () => {
   let provider = createMockProvider();
   let wallets = getWallets(provider);
   let wallet = wallets[0];
-  let decisionContract;
+  let adjudicationContract;
   let utils;
   let testPredicate;
 
   before(async () => {
     utils = await deployContract(wallet, Utils, []);
-    link(UniversalDecisionContract, 'contracts/Utils.sol:Utils', utils.address);
+    link(UniversalAdjudicationContract, 'contracts/Utils.sol:Utils', utils.address);
   });
 
   beforeEach(async () => {
-    decisionContract = await deployContract(wallet, UniversalDecisionContract);
-    testPredicate = await deployContract(wallet, TestPredicate, [decisionContract.address]);
+    adjudicationContract = await deployContract(wallet, UniversalAdjudicationContract);
+    testPredicate = await deployContract(wallet, TestPredicate, [adjudicationContract.address]);
   });
 
   describe('claimProperty', () => {
     it('adds a claim', async () => {
       const property = {
-        predicate: testPredicate.address,
+        predicateAddress: testPredicate.address,
         input: '0x01'
       };
 
-      await decisionContract.claimProperty(property);
-      const claimId = await decisionContract.getPropertyId(property);
-      const claim = await decisionContract.getClaim(claimId);
+      await adjudicationContract.claimProperty(property);
+      const claimId = await adjudicationContract.getPropertyId(property);
+      const claim = await adjudicationContract.getClaim(claimId);
 
       // check newly stored property is equal to the claimed property
-      assert.equal(claim.predicate, property.predicate);
+      assert.equal(claim.predicateAddress, property.predicateAddress);
       assert.equal(claim.input, property.input);
     });
     it('fails to add an already claimed property and throws Error', async () => {
       const property = {
-        predicate: testPredicate.address,
+        predicateAddress: testPredicate.address,
         input: '0x01'
       };
       // claim a property
-      await decisionContract.claimProperty(property);
-      // check if the second call of the claimProperty function throws an error 
-      assert(await expect(decisionContract.claimProperty(property)).to.be.rejectedWith(Error));
+      await adjudicationContract.claimProperty(property);
+      // check if the second call of the claimProperty function throws an error
+      assert(await expect(adjudicationContract.claimProperty(property)).to.be.rejectedWith(Error));
     });
   });
 
@@ -63,11 +63,11 @@ describe('UniversalDecisionContract', () => {
       };
       const property = await testPredicate.createPropertyFromInput(testPredicateInput);
       await testPredicate.decideTrue(testPredicateInput);
-      const decidedPropertyId = await decisionContract.getPropertyId(property);
+      const decidedPropertyId = await adjudicationContract.getPropertyId(property);
       const blockNumber = await provider.getBlockNumber()
-      const decidedClaim = await decisionContract.claims(decidedPropertyId);
-      
-      //check the block number of newly decided property is equal to the claimed property's 
+      const decidedClaim = await adjudicationContract.claims(decidedPropertyId);
+
+      //check the block number of newly decided property is equal to the claimed property's
       assert.equal(decidedClaim.decidedAfter, blockNumber - 1);
     });
 
@@ -77,17 +77,17 @@ describe('UniversalDecisionContract', () => {
       };
       const property = await testPredicate.createPropertyFromInput(testPredicateInput);
       await testPredicate.decideFalse(testPredicateInput);
-      const falsifiedPropertyId = await decisionContract.getPropertyId(property);
-      const falsifiedClaim = await decisionContract.claims(falsifiedPropertyId);
+      const falsifiedPropertyId = await adjudicationContract.getPropertyId(property);
+      const falsifiedClaim = await adjudicationContract.claims(falsifiedPropertyId);
 
-      // check the claimed property is deleted 
+      // check the claimed property is deleted
       assert(isEmptyClaimStatus(falsifiedClaim));
     })
   });
 });
 
 function isEmptyClaimStatus(_claimStatus) {
-  return ethers.utils.bigNumberify(_claimStatus.property.predicate).isZero()
+  return ethers.utils.bigNumberify(_claimStatus.property.predicateAddress).isZero()
     && ethers.utils.arrayify(_claimStatus.property.input).length === 0
     && _claimStatus.decidedAfter.isZero()
     && _claimStatus.numProvenContradictions.isZero()

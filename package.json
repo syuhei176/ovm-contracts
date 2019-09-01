@@ -16,10 +16,12 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@openzeppelin/contracts": "^2.3.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "ethereum-waffle": "^2.0.15",
     "ethers": "^4.0.33",
-    "mocha": "^6.2.0"
+    "mocha": "^6.2.0",
+    "truffle": "^5.0.34"
   }
 }
