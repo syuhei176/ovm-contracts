@@ -28,13 +28,16 @@ contract DepostiAndExit {
     /* Public Variables and Mappings*/
     ERC20 public erc20;
     CommitmentContract public commitmentContract;
+    UniversalAdjudicationContract public universalAdjudicationContract;
     uint256 public totalDeposited;
     mapping (uint256 => types.Range) public depositedRanges;
     mapping (bytes32 => types.Checkpoint) public checkpoints;
+    mapping (bytes32 => bool) public checkpointsExist;
 
-    constructor(address _erc20, address _commitmentContract) public {
+    constructor(address _erc20, address _commitmentContract, address _universalAdjudicationContract) public {
         erc20 = ERC20(_erc20);
         commitmentContract = CommitmentContract(_commitmentContract);
+        universalAdjudicationContract = UniversalAdjudicationContract(_universalAdjudicationContract);
     }
 
     function deposit(uint256 _amount, types.Property memory _initialState) public {
@@ -83,13 +86,11 @@ contract DepostiAndExit {
         delete depositedRanges[encompasingRange.end];
     }
 
-    function finalizeCheckpoint(types.Checkpoint memory _checkpoint, uint256 _depositedRangeId) public {
-        require(UniversalAdjudicationContract.isDecided(_checkpoint.stateUpdate.property), "Checkpointing claim must be decided");
-        types.Checkpoint memory checkpoint = types.Checkpoint({
-            stateUpdate: _checkpoint.stateUpdate,
-            subrange: depositedRanges[_depositedRangeId]
-        });
-        bytes32 checkpointId = getCheckpointId(checkpoint);
+    function finalizeCheckpoint(types.Checkpoint memory _checkpoint) public {
+        require(universalAdjudicationContract.isDecided(_checkpoint.stateUpdate.property), "Checkpointing claim must be decided");
+        bytes32 checkpointId = getCheckpointId(_checkpoint);
+        // store the checkpoint
+        checkpoints[checkpointId] = _checkpoint;
         emit CheckpointFinalized(checkpointId);
         emit LogCheckpoint(_checkpoint);
     }
@@ -97,18 +98,17 @@ contract DepostiAndExit {
     function finalizeExit(types.Checkpoint memory _checkpoint, uint256 _depositedRangeId) public {
         bytes32 checkpointId = getCheckpointId(_checkpoint);
         // Check that we are authorized to finalize this exit
-        require(_checkpoint.stateUpdate.property.predicateAddress == msg.sender,"Exiting claim must be finalized by its predicate");
-        require(finalizeCheckpoint(_checkpoint, _depositedRangeId), "Checkpoint must be finalized to finalize an exit");
-        require(UniversalAdjudicationContract.isDecided(_checkpoint.stateUpdate.property), "Exit must be decided after this block");
+        require(_checkpoint.stateUpdate.property.predicateAddress == msg.sender, "Exiting claim must be finalized by its predicate");
+        require(isFinalized(_checkpoint), "Checkpoint must be finalized to finalize an exit");
+        require(universalAdjudicationContract.isDecided(_checkpoint.stateUpdate.property), "Exit must be decided after this block");
         require(isSubrange(_checkpoint.subrange, depositedRanges[_depositedRangeId]), "Exit must be of a depostied range (the one that has not been exited)");
         // Remove the deposited range
-        removeDepositedRange(_checkpoint.range, _depositedRangeId);
+        removeDepositedRange(_checkpoint.subrange, _depositedRangeId);
         //Transfer tokens to its predicate
         uint256 amount = _checkpoint.subrange.end - _checkpoint.subrange.start;
         erc20.transfer(_checkpoint.stateUpdate.property.predicateAddress, amount);
         emit ExitFinalized(checkpointId);
     }
-
 
     /* Helpers */
     function getLatestPlasmaBlockNumber() private returns (uint256) {
@@ -116,10 +116,14 @@ contract DepostiAndExit {
     }
 
     function getCheckpointId(types.Checkpoint memory _checkpoint) private pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_checkpoint.stateUpdate, _checkpoint.subrange));
+        return keccak256(abi.encode(_checkpoint.stateUpdate, _checkpoint.subrange));
     }
 
     function isSubrange(types.Range memory _subrange, types.Range memory _surroundingRange) public pure returns (bool) {
         return _subrange.start >= _surroundingRange.start && _subrange.end <= _surroundingRange.end;
+    }
+    function isFinalized(types.Checkpoint memory _checkpoint) public view returns (bool) {
+        bytes32 checkpointId = getCheckpointId(_checkpoint);
+        return checkpointsExist[checkpointId];
     }
 }

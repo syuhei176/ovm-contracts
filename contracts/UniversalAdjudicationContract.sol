@@ -169,7 +169,7 @@ contract UniversalAdjudicationContract {
         return true; // Always return true until we know what to whitelist
     }
 
-    function isDecided(types.Property memory _property) private returns (bool) {
+    function isDecided(types.Property memory _property) public returns (bool) {
         return claims[Utils.getPropertyId(_property)].decidedAfter < block.number;
     }
 
