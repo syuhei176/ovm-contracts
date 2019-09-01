@@ -15,7 +15,7 @@ describe('UniversalAdjudicationContract', () => {
   let provider = createMockProvider();
   let wallets = getWallets(provider);
   let wallet = wallets[0];
-  let decisionContract;
+  let adjudicationContract;
   let utils;
   let testPredicate;
 
@@ -25,34 +25,34 @@ describe('UniversalAdjudicationContract', () => {
   });
 
   beforeEach(async () => {
-    decisionContract = await deployContract(wallet, UniversalAdjudicationContract);
-    testPredicate = await deployContract(wallet, TestPredicate, [decisionContract.address]);
+    adjudicationContract = await deployContract(wallet, UniversalAdjudicationContract);
+    testPredicate = await deployContract(wallet, TestPredicate, [adjudicationContract.address]);
   });
 
   describe('claimProperty', () => {
     it('adds a claim', async () => {
       const property = {
-        predicate: testPredicate.address,
+        predicateAddress: testPredicate.address,
         input: '0x01'
       };
 
-      await decisionContract.claimProperty(property);
-      const claimId = await decisionContract.getPropertyId(property);
-      const claim = await decisionContract.getClaim(claimId);
+      await adjudicationContract.claimProperty(property);
+      const claimId = await adjudicationContract.getPropertyId(property);
+      const claim = await adjudicationContract.getClaim(claimId);
 
       // check newly stored property is equal to the claimed property
-      assert.equal(claim.predicate, property.predicate);
+      assert.equal(claim.predicateAddress, property.predicateAddress);
       assert.equal(claim.input, property.input);
     });
     it('fails to add an already claimed property and throws Error', async () => {
       const property = {
-        predicate: testPredicate.address,
+        predicateAddress: testPredicate.address,
         input: '0x01'
       };
       // claim a property
-      await decisionContract.claimProperty(property);
+      await adjudicationContract.claimProperty(property);
       // check if the second call of the claimProperty function throws an error
-      assert(await expect(decisionContract.claimProperty(property)).to.be.rejectedWith(Error));
+      assert(await expect(adjudicationContract.claimProperty(property)).to.be.rejectedWith(Error));
     });
   });
 
@@ -63,9 +63,9 @@ describe('UniversalAdjudicationContract', () => {
       };
       const property = await testPredicate.createPropertyFromInput(testPredicateInput);
       await testPredicate.decideTrue(testPredicateInput);
-      const decidedPropertyId = await decisionContract.getPropertyId(property);
+      const decidedPropertyId = await adjudicationContract.getPropertyId(property);
       const blockNumber = await provider.getBlockNumber()
-      const decidedClaim = await decisionContract.claims(decidedPropertyId);
+      const decidedClaim = await adjudicationContract.claims(decidedPropertyId);
 
       //check the block number of newly decided property is equal to the claimed property's
       assert.equal(decidedClaim.decidedAfter, blockNumber - 1);
@@ -77,8 +77,8 @@ describe('UniversalAdjudicationContract', () => {
       };
       const property = await testPredicate.createPropertyFromInput(testPredicateInput);
       await testPredicate.decideFalse(testPredicateInput);
-      const falsifiedPropertyId = await decisionContract.getPropertyId(property);
-      const falsifiedClaim = await decisionContract.claims(falsifiedPropertyId);
+      const falsifiedPropertyId = await adjudicationContract.getPropertyId(property);
+      const falsifiedClaim = await adjudicationContract.claims(falsifiedPropertyId);
 
       // check the claimed property is deleted
       assert(isEmptyClaimStatus(falsifiedClaim));
@@ -87,7 +87,7 @@ describe('UniversalAdjudicationContract', () => {
 });
 
 function isEmptyClaimStatus(_claimStatus) {
-  return ethers.utils.bigNumberify(_claimStatus.property.predicate).isZero()
+  return ethers.utils.bigNumberify(_claimStatus.property.predicateAddress).isZero()
     && ethers.utils.arrayify(_claimStatus.property.input).length === 0
     && _claimStatus.decidedAfter.isZero()
     && _claimStatus.numProvenContradictions.isZero()
