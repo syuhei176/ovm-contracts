@@ -32,7 +32,6 @@ contract DepostiAndExit {
     uint256 public totalDeposited;
     mapping (uint256 => types.Range) public depositedRanges;
     mapping (bytes32 => types.Checkpoint) public checkpoints;
-    mapping (bytes32 => bool) public checkpointsExist;
 
     constructor(address _erc20, address _commitmentContract, address _universalAdjudicationContract) public {
         erc20 = ERC20(_erc20);
@@ -99,7 +98,6 @@ contract DepostiAndExit {
         bytes32 checkpointId = getCheckpointId(_checkpoint);
         // Check that we are authorized to finalize this exit
         require(_checkpoint.stateUpdate.property.predicateAddress == msg.sender, "Exiting claim must be finalized by its predicate");
-        require(isFinalized(_checkpoint), "Checkpoint must be finalized to finalize an exit");
         require(universalAdjudicationContract.isDecided(_checkpoint.stateUpdate.property), "Exit must be decided after this block");
         require(isSubrange(_checkpoint.subrange, depositedRanges[_depositedRangeId]), "Exit must be of a depostied range (the one that has not been exited)");
         // Remove the deposited range
@@ -121,9 +119,5 @@ contract DepostiAndExit {
 
     function isSubrange(types.Range memory _subrange, types.Range memory _surroundingRange) public pure returns (bool) {
         return _subrange.start >= _surroundingRange.start && _subrange.end <= _surroundingRange.end;
-    }
-    function isFinalized(types.Checkpoint memory _checkpoint) public view returns (bool) {
-        bytes32 checkpointId = getCheckpointId(_checkpoint);
-        return checkpointsExist[checkpointId];
     }
 }
