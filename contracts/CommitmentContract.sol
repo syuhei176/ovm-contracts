@@ -8,13 +8,15 @@ import {DataTypes as types} from "./DataTypes.sol";
  * @notice This is mock commitment chain contract. Spec is http://spec.plasma.group/en/latest/src/02-contracts/commitment-contract.html
  */
 contract CommitmentContract{
+    uint64 public blockNumber;
     // Event definitions
     event BlockSubmitted(
+        uint64 blockNumber,
         bytes32 root
     );
 
-    function submit(bytes32 _root) public {
-        emit BlockSubmitted(_root);
+    function submit_root(uint64 blkNumber, bytes32 _root) public {
+        emit BlockSubmitted(blkNumber, _root);
     }
 
     // Predicate checks this
