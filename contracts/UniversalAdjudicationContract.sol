@@ -81,46 +81,68 @@ contract UniversalAdjudicationContract {
         types.Property memory _root2,
         types.ImplicationProofElement[] memory _implicationProof2,
         bytes memory _contradictionWitness
-        ) public returns (bool) {
+    ) public returns (bool) {
         require(verifyImplicationProof(_root1, _implicationProof1));
         require(verifyImplicationProof(_root2, _implicationProof2));
         types.Property memory implication1 = _implicationProof1[_implicationProof1.length - 1].implication;
         types.Property memory implication2 = _implicationProof2[_implicationProof2.length - 1].implication;
         require(Predicate(implication1.predicateAddress).verifyContradiction(implication1, implication2, _contradictionWitness));
+        return true;
     }
 
     function proveClaimContradictsDecision(
-        types.Property memory _decidedProperty,
-        types.ImplicationProofElement[] memory _decidedImplicationProof,
-        types.Property memory _contradictingClaim,
-        types.ImplicationProofElement[] memory _contradictionImplicationProof,
+        bytes memory _decidedProperty,
+        bytes[] memory _decidedImplicationProof,
+        bytes memory _contradictingClaim,
+        bytes[] memory _contradictionImplicationProof,
         bytes memory _contradictionWitness
-        ) public {
-        bytes32 contraditingClaimId = Utils.getPropertyId(_contradictingClaim);
+    ) public {
+        types.Property memory decidedProperty = decodeProperty(_decidedProperty);
+        types.ImplicationProofElement[] memory decidedImplicationProof = new types.ImplicationProofElement[](_decidedImplicationProof.length);
+        for(uint i = 0;i < _decidedImplicationProof.length; i++) {
+            decidedImplicationProof[i] = decodeImplicationProof(_decidedImplicationProof[i]);
+        }
+        types.Property memory contradictingClaim = decodeProperty(_contradictingClaim);
+        types.ImplicationProofElement[] memory contradictionImplicationProof = new types.ImplicationProofElement[](_contradictionImplicationProof.length);
+        for(uint i = 0;i < _contradictionImplicationProof.length; i++) {
+            contradictionImplicationProof[i] = decodeImplicationProof(_contradictionImplicationProof[i]);
+        }
+
+        bytes32 contraditingClaimId = Utils.getPropertyId(contradictingClaim);
 
         // make sure the decided property is already decided before the current block number
-        require(isDecided(_decidedProperty));
+        require(isDecided(decidedProperty));
         // make sure the two properties contradict one another
-        require(verifyContradictingImplications(_decidedProperty, _decidedImplicationProof, _contradictingClaim, _contradictionImplicationProof, _contradictionWitness));
+        require(verifyContradictingImplications(decidedProperty, decidedImplicationProof, contradictingClaim, contradictionImplicationProof, _contradictionWitness));
         // delete the contradicting claim
         delete claims[contraditingClaimId];
     }
 
     function proveUndecidedContradiction(
-        types.Contradiction memory _contradiction,
-        types.ImplicationProofElement[] memory _implicationProof0,
-        types.ImplicationProofElement[] memory _implicationProof1,
+        bytes memory _contradiction,
+        bytes[] memory _implicationProof0,
+        bytes[] memory _implicationProof1,
         bytes memory _contradictionWitness
-        ) public {
+    ) public {
+        types.Contradiction memory contradiction = decodeContradiction(_contradiction);
+        types.ImplicationProofElement[] memory implicationProof0 = new types.ImplicationProofElement[](_implicationProof0.length);
+        types.ImplicationProofElement[] memory implicationProof1 = new types.ImplicationProofElement[](_implicationProof1.length);
+        for(uint i = 0;i < _implicationProof0.length; i++) {
+            implicationProof0[i] = decodeImplicationProof(_implicationProof0[i]);
+        }
+        for(uint i = 0;i < _implicationProof1.length; i++) {
+            implicationProof1[i] = decodeImplicationProof(_implicationProof1[i]);
+        }
+
         // get the unique ID corresponding to this contradiction
-        bytes32 contradictionId = Utils.getContradictionId(_contradiction);
-        bytes32[2] memory propertyIds = [Utils.getPropertyId(_contradiction.property), Utils.getPropertyId(_contradiction.counterProperty)];
+        bytes32 contradictionId = Utils.getContradictionId(contradiction);
+        bytes32[2] memory propertyIds = [Utils.getPropertyId(contradiction.property), Utils.getPropertyId(contradiction.counterProperty)];
 
         // make sure both cliams have been made and not decided false
         require(!Utils.isEmptyClaim(claims[propertyIds[0]]) && !Utils.isEmptyClaim(claims[propertyIds[1]]));
 
         // make sure the contradicting properties have contradicting implications
-        require(verifyContradictingImplications(_contradiction.property, _implicationProof0, _contradiction.counterProperty, _implicationProof1, _contradictionWitness));
+        require(verifyContradictingImplications(contradiction.property, implicationProof0, contradiction.counterProperty, implicationProof1, _contradictionWitness));
 
         // increment the number of contradictions
         claims[propertyIds[0]].numProvenContradictions += 1;
@@ -185,4 +207,27 @@ contract UniversalAdjudicationContract {
         return Utils.getPropertyId(_property);
     }
 
+    function decodeProperty(bytes memory _propertyBytes) private pure returns (types.Property memory) {
+        (address predicate, bytes memory input) = abi.decode(_propertyBytes, (address, bytes));
+        return types.Property({
+            predicateAddress: predicate,
+            input: input
+        });
+    }
+
+    function decodeImplicationProof(bytes memory _implicationProof) private pure returns (types.ImplicationProofElement memory) {
+        (bytes memory implication, bytes[] memory witness) = abi.decode(_implicationProof, (bytes, bytes[]));
+        return types.ImplicationProofElement({
+            implication: decodeProperty(implication),
+            witness: witness
+        });
+    }
+
+    function decodeContradiction(bytes memory _contradictionBytes) private pure returns (types.Contradiction memory) {
+        (bytes memory property, bytes memory counterProperty) = abi.decode(_contradictionBytes, (bytes, bytes));
+        return types.Contradiction({
+            property: decodeProperty(property),
+            counterProperty: decodeProperty(counterProperty)
+        });
+    }
 }

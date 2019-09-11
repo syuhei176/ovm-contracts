@@ -4,6 +4,8 @@ const {createMockProvider, deployContract, getWallets, solidity, link} = require
 const UniversalAdjudicationContract = require('../build/UniversalAdjudicationContract');
 const Utils = require('../build/Utils');
 const TestPredicate = require('../build/TestPredicate');
+const NotPredicate = require('../build/NotPredicate');
+const BoolPredicate = require('../build/BoolPredicate');
 const ethers =require('ethers');
 const abi = new ethers.utils.AbiCoder()
 
@@ -18,6 +20,8 @@ describe('UniversalAdjudicationContract', () => {
   let adjudicationContract;
   let utils;
   let testPredicate;
+  let notPredicate;
+  let boolPredicate;
 
   before(async () => {
     utils = await deployContract(wallet, Utils, []);
@@ -27,6 +31,8 @@ describe('UniversalAdjudicationContract', () => {
   beforeEach(async () => {
     adjudicationContract = await deployContract(wallet, UniversalAdjudicationContract);
     testPredicate = await deployContract(wallet, TestPredicate, [adjudicationContract.address]);
+    notPredicate = await deployContract(wallet, NotPredicate, []);
+    boolPredicate = await deployContract(wallet, BoolPredicate, [adjudicationContract.address]);
   });
 
   describe('claimProperty', () => {
@@ -80,6 +86,31 @@ describe('UniversalAdjudicationContract', () => {
       assert(isEmptyClaimStatus(falsifiedClaim));
     })
   });
+
+  describe('proveClaimContradictsDecision', () => {
+    it('prove decided contradiction between T and Not(T)', async () => {
+      const property = [boolPredicate.address, '0x'];
+      const encodedProperty = abi.encode(['address', 'bytes'], property);
+      const counterProperty = [notPredicate.address, encodedProperty];
+      const encodedCounterProperty = abi.encode(['address', 'bytes'], counterProperty);
+      const implicationProof1 = [encodedProperty, ['0x0202']];
+      const implicationProof2 = [encodedCounterProperty, ['0x0202']];
+      const encodedImplicationProof1 = abi.encode(['bytes', 'bytes[]'], implicationProof1);
+      const encodedImplicationProof2 = abi.encode(['bytes', 'bytes[]'], implicationProof2);
+      await adjudicationContract.claimProperty(encodedProperty);
+      await boolPredicate.decideTrue();
+      await adjudicationContract.proveClaimContradictsDecision(
+        encodedCounterProperty,
+        [encodedImplicationProof2],
+        encodedProperty,
+        [encodedImplicationProof1],
+        abi.encode(['uint'], [1])
+      );
+      await adjudicationContract.claimProperty(encodedCounterProperty);
+      assert(true);
+    });
+  });
+
 });
 
 function isEmptyClaimStatus(_claimStatus) {

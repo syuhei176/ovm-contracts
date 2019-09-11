@@ -13,17 +13,20 @@ contract NotPredicate {
     }
 
     function verifyContradiction(
-        NOTPredicateInput memory _claim0,
-        NOTPredicateInput memory _claim1,
-        NOTContradictionWitness memory _contradictionWitness
+        types.Property memory _claim0,
+        types.Property memory _claim1,
+        bytes memory _contradictionWitness
     ) public returns (bool) {
+        (uint256 notIndex) = abi.decode(_contradictionWitness, (uint256));
         //a Not property contradicts to a base property if notProperty.input == baseProperty
-        NOTPredicateInput[2] memory claims = [_claim0, _claim1];
-        require(_contradictionWitness.NOTIndex == 0 || _contradictionWitness.NOTIndex == 1,
-        "contradictionWitness's Index should be either 0 or 1");
-        NOTPredicateInput memory baseClaim = claims[_contradictionWitness.NOTIndex];
-        NOTPredicateInput memory NOTBaseClaim = claims[(_contradictionWitness.NOTIndex - 1)**2];
-        return ((NOTBaseClaim.property.predicateAddress == address(this)) && (keccak256(NOTBaseClaim.property.input) == keccak256(abi.encode(baseClaim))));
+        types.Property[2] memory claims = [_claim0, _claim1];
+        require(notIndex == 0 || notIndex == 1,
+            "contradictionWitness's Index should be either 0 or 1");
+        types.Property memory baseClaim = claims[notIndex];
+        types.Property memory NOTBaseClaim = claims[1 - notIndex];
+        return (
+            (NOTBaseClaim.predicateAddress == address(this))
+            && (keccak256(NOTBaseClaim.input) == keccak256(abi.encode(baseClaim.predicateAddress, baseClaim.input))));
     }
 
     function verifyImplication(
