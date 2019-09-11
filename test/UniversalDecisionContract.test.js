@@ -5,7 +5,7 @@ const UniversalAdjudicationContract = require('../build/UniversalAdjudicationCon
 const Utils = require('../build/Utils');
 const TestPredicate = require('../build/TestPredicate');
 const ethers =require('ethers');
-
+const abi = new ethers.utils.AbiCoder()
 
 chai.use(solidity);
 chai.use(require('chai-as-promised'));
@@ -31,28 +31,24 @@ describe('UniversalAdjudicationContract', () => {
 
   describe('claimProperty', () => {
     it('adds a claim', async () => {
-      const property = {
-        predicateAddress: testPredicate.address,
-        input: '0x01'
-      };
+      const property = [testPredicate.address, '0x01'];
+      const encoded = abi.encode(['address', 'bytes'], property);
 
-      await adjudicationContract.claimProperty(property);
+      await adjudicationContract.claimProperty(encoded);
       const claimId = await adjudicationContract.getPropertyId(property);
       const claim = await adjudicationContract.getClaim(claimId);
 
       // check newly stored property is equal to the claimed property
-      assert.equal(claim.predicateAddress, property.predicateAddress);
-      assert.equal(claim.input, property.input);
+      assert.equal(claim.predicateAddress, property[0]);
+      assert.equal(claim.input, property[1]);
     });
     it('fails to add an already claimed property and throws Error', async () => {
-      const property = {
-        predicateAddress: testPredicate.address,
-        input: '0x01'
-      };
+      const property = [testPredicate.address, '0x01'];
+      const encoded = abi.encode(['address', 'bytes'], property);
       // claim a property
-      await adjudicationContract.claimProperty(property);
+      await adjudicationContract.claimProperty(encoded);
       // check if the second call of the claimProperty function throws an error
-      assert(await expect(adjudicationContract.claimProperty(property)).to.be.rejectedWith(Error));
+      assert(await expect(adjudicationContract.claimProperty(encoded)).to.be.rejectedWith(Error));
     });
   });
 

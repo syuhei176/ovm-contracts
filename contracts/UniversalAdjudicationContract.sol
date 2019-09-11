@@ -18,15 +18,19 @@ contract UniversalAdjudicationContract {
     mapping (bytes32 => bool) contradictions;
     enum RemainingClaimIndex {Property, CounterProperty}
 
-
-    function claimProperty(types.Property memory _claim) public {
+    function claimProperty(bytes memory _claimBytes) public {
+        (address predicate, bytes memory input) = abi.decode(_claimBytes, (address, bytes));
+        types.Property memory claim = types.Property({
+            predicateAddress: predicate,
+            input: input
+        });
         // get the id of this property
-        bytes32 claimedPropertyId = Utils.getPropertyId(_claim);
+        bytes32 claimedPropertyId = Utils.getPropertyId(claim);
         // make sure a claim on this property has not already been made
         require(Utils.isEmptyClaim(claims[claimedPropertyId]));
 
         // create the claim status. Always begins with no proven contradictions
-        types.ClaimStatus memory status = types.ClaimStatus(_claim, 0, block.number + DISPUTE_PERIOD);
+        types.ClaimStatus memory status = types.ClaimStatus(claim, 0, block.number + DISPUTE_PERIOD);
 
         // store the claim
         claims[claimedPropertyId] = status;
