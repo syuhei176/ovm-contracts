@@ -8,6 +8,6 @@ module.exports = function(deployer) {
     .deploy(Utils)
     .then(() => deployer.link(Utils, UniversalAdjudicationContract))
     .then(() => deployer.deploy(UniversalAdjudicationContract))
-    .then(() => deployer.deploy(TestPredicate))
+    .then(() => deployer.deploy(TestPredicate, UniversalAdjudicationContract.address))
     .then(() => deployer.deploy(CommitmentContract))
 }
