@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 import "./Utils.sol";
 import {DataTypes as types} from "./DataTypes.sol";
 import "./Predicate/AtomicPredicate.sol";
-import "./Predicate/OperatorPredicate.sol";
+import "./Predicate/LogicalConnective.sol";
 
 contract UniversalAdjudicationContract {
 
@@ -89,7 +89,7 @@ contract UniversalAdjudicationContract {
         types.ChallengeGame storage game = claims[gameId];
         types.ChallengeGame memory challengingGame = claims[_challengingGameId];
         require(
-            OperatorPredicate(game.property.predicateAddress).isValidChallenge(game.property.inputs, _challengeInputs[0], challengingGame.property),
+            LogicalConnective(game.property.predicateAddress).isValidChallenge(game.property.inputs, _challengeInputs[0], challengingGame.property),
             "_challenge isn't valid"
         );
         game.challenges.push(_challengingGameId);

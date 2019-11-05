@@ -2,10 +2,10 @@ pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
 import {DataTypes as types} from "../DataTypes.sol";
-import "./OperatorPredicate.sol";
+import "./LogicalConnective.sol";
 import {UniversalAdjudicationContract} from "../UniversalAdjudicationContract.sol";
 
-contract NotPredicate is OperatorPredicate {
+contract NotPredicate is LogicalConnective {
     address uacAddress;
 
     constructor(address _uacAddress) public {
@@ -26,10 +26,17 @@ contract NotPredicate is OperatorPredicate {
         return property;
     }
 
+    /**
+     * @dev Validates a child node of Not property in game tree.
+     */
     function isValidChallenge(bytes[] calldata _inputs, bytes calldata _challengeInput, types.Property calldata _challnge) external returns (bool) {
+        // The valid challenge of not(p) is p and _inputs[0] is p here
         return keccak256(_inputs[0]) == keccak256(abi.encode(_challnge));
     }
     
+    /**
+     * @dev Decides true
+     */
     function decideTrue(types.Property memory innerProperty, bytes memory _witness) public {
         require(
             UniversalAdjudicationContract(uacAddress).isDecided(innerProperty),
