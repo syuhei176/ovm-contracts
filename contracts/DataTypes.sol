@@ -1,17 +1,22 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
-contract DataTypes {
+library DataTypes {
     struct Property {
         address predicateAddress;
         bytes[] inputs;
     }
-    
+
+    enum Decision {
+        Undecided,
+        True,
+        False
+    }
+
     struct ChallengeGame {
         Property property;
         bytes32[] challenges;
-        // 0: undecided, 1: true, 2: false
-        uint decision;
+        Decision decision;
         uint createdBlock;
     }
 

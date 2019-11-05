@@ -21,7 +21,7 @@ contract UniversalAdjudicationContract {
         require(Utils.isEmptyClaim(claims[claimedPropertyId]), "claim isn't empty");
 
         // create the claim status. Always begins with no proven contradictions
-        types.ChallengeGame memory newGame = types.ChallengeGame(_claim, new bytes32[](0), 0, block.number);
+        types.ChallengeGame memory newGame = types.ChallengeGame(_claim, new bytes32[](0), types.Decision.Undecided, block.number);
 
         // store the claim
         claims[claimedPropertyId] = newGame;
@@ -32,12 +32,12 @@ contract UniversalAdjudicationContract {
         // check all _game.challenges should be false
         for (uint256 i = 0;i < game.challenges.length; i++) {
             types.ChallengeGame memory challengingGame = claims[game.challenges[i]];
-            require(challengingGame.decision == 2, "all _game.challenges should be false");
+            require(challengingGame.decision == types.Decision.False, "all _game.challenges should be false");
         }
         // should check dispute period
         require(game.createdBlock < block.number - DISPUTE_PERIOD, "Dispute period haven't passed yet.");
         // game should be decided true
-        game.decision = 1;
+        game.decision = types.Decision.True;
     }
 
     function decideClaimToFalse(
@@ -57,12 +57,15 @@ contract UniversalAdjudicationContract {
         require(isValidChallenge, "challenge isn't valid");
         // _game.createdBlock > block.number - dispute
         // check _challenge have been decided true
-        require(challengingGame.decision == 1, "challenging game haven't been decided true.");
+        require(challengingGame.decision == types.Decision.True, "challenging game haven't been decided true.");
         // game should be decided false
-        game.decision = 2;
+        game.decision = types.Decision.False;
     }
 
-    function removeChallenge(types.ChallengeGame memory _game, types.ChallengeGame memory _challenge) public {
+    function removeChallenge(
+        bytes32 _gameId,
+        bytes32 _challengingGameId
+    ) public {
     }
 
     function decideProperty(types.Property memory _property, bool _decision) public {
@@ -72,9 +75,9 @@ contract UniversalAdjudicationContract {
 
         // if the decision is true, automatically decide its claim now
         if (_decision) {
-            claims[decidedPropertyId].decision = 1; // True
+            claims[decidedPropertyId].decision = types.Decision.True; // True
         } else {
-            claims[decidedPropertyId].decision = 2; // False
+            claims[decidedPropertyId].decision = types.Decision.False; // False
         }
     }
 
@@ -99,7 +102,7 @@ contract UniversalAdjudicationContract {
     }
 
     function isDecided(types.Property memory _property) public returns (bool) {
-        return claims[Utils.getPropertyId(_property)].decision == 1;
+        return claims[Utils.getPropertyId(_property)].decision == types.Decision.True;
     }
 
     function getGame(bytes32 claimId) public view returns (types.ChallengeGame memory) {

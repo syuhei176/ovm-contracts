@@ -8,7 +8,7 @@ library Utils {
         return keccak256(abi.encode(_property));
     }
 
-    function isEmptyClaim(types.ChallengeGame memory _game) public pure returns (bool) {
+    function isEmptyClaim(types.ChallengeGame memory _game) internal pure returns (bool) {
         return _game.createdBlock == 0;
     }
 }
