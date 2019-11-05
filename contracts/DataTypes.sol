@@ -4,28 +4,15 @@ pragma experimental ABIEncoderV2;
 contract DataTypes {
     struct Property {
         address predicateAddress;
-        bytes input;
+        bytes[] inputs;
     }
-
-    struct Contradiction {
+    
+    struct ChallengeGame {
         Property property;
-        Property counterProperty;
-    }
-
-    struct ClaimStatus {
-        Property property;
-        uint numProvenContradictions;
-        uint decidedAfter; // claims can be decided after this block number
-    }
-
-    struct ImplicationProofElement {
-        Property implication;
-        bytes[] witness;
-    }
-
-    struct Challenge {
-        Checkpoint challengedCheckpoint;
-        Checkpoint challengingCheckpoint;
+        bytes32[] challenges;
+        // 0: undecided, 1: true, 2: false
+        uint decision;
+        uint createdBlock;
     }
 
     struct Range {
