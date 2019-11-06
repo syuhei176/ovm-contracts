@@ -71,7 +71,7 @@ describe('UniversalAdjudicationContract', () => {
     });
   });
 
-  describe('decideFalse', () => {
+  describe('decideClaimToFalse', () => {
     it('game should be decided false', async () => {
       await adjudicationContract.claimProperty(notProperty);
       await adjudicationContract.claimProperty(trueProperty);
@@ -86,18 +86,36 @@ describe('UniversalAdjudicationContract', () => {
     });
   });
 
-  describe('decideTrue', () => {
+  describe('decideClaimToTrue', () => {
     it('game should be decided true', async () => {
       await adjudicationContract.claimProperty(notProperty);
       const gameId = await adjudicationContract.getPropertyId(notProperty);
-      // TODO: block time passed
-      await expect(adjudicationContract.decideClaimToTrue(gameId)).to.be.reverted;
+      // increase 10 blocks to pass dispute period
+      await increaseBlocks(wallets, 10);
+      await adjudicationContract.decideClaimToTrue(gameId);
 
-      /*
       const game = await adjudicationContract.getGame(gameId);
       // game should be decided true
       assert.equal(game.decision, 1);
-      */
+    });
+    it('fail to decided true because dispute period has not passed', async () => {
+      await adjudicationContract.claimProperty(notProperty);
+      const gameId = await adjudicationContract.getPropertyId(notProperty);
+      await expect(adjudicationContract.decideClaimToTrue(gameId)).to.be.reverted;
     });
   });
 });
+
+async function increaseBlocks(wallets, num) {
+  for(let i = 0;i < num;i++) {
+    await increaseBlock(wallets)
+  }
+}
+
+async function increaseBlock(wallets) {
+  let tx = {
+    to: wallets[1].address,
+    value: ethers.utils.parseEther('0.0')
+  };
+  await wallets[0].sendTransaction(tx);
+}
