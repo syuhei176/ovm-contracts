@@ -19,8 +19,7 @@ describe('ForAllSuchThatQuantifier', () => {
   let wallets = getWallets(provider);
   let wallet = wallets[0];
   let utils;
-  let testPredicate, andPredicate, notPredicate, forAllSuchThat, adjudicationContract;
-  let trueProperty, andProperty;
+  let testPredicate, notPredicate, forAllSuchThat, adjudicationContract;
 
   before(async () => {
 		utils = await deployContract(wallet, Utils, []);
@@ -32,25 +31,25 @@ describe('ForAllSuchThatQuantifier', () => {
     andPredicate = await deployContract(wallet, AndPredicate, [adjudicationContract.address, notPredicate.address]);
     forAllSuchThat = await deployContract(wallet, ForAllSuchThatQuantifier, [adjudicationContract.address, notPredicate.address]);
     testPredicate = await deployContract(wallet, TestPredicate, [adjudicationContract.address]);
-    trueProperty = {
-      predicateAddress: testPredicate.address,
-      inputs: ['0x01']
-    };
     forAllSuchThatProperty = {
       predicateAddress: forAllSuchThat.address,
       inputs: [
-        abi.encode(['tuple(address, bytes[])'], [[testPredicate.address, []]]),
-        '0x50',
-        abi.encode(['tuple(address, bytes[])'], [[testPredicate.address, ['0x50']]]),
+        '0x50'
+      ],
+      properties: [
+        abi.encode(['tuple(address, bytes[], bytes[])'], [[testPredicate.address, [], []]]),
+        abi.encode(['tuple(address, bytes[], bytes[])'], [[testPredicate.address, ['0x50'], []]])
       ]
     };
     notTrueProperty = {
       predicateAddress: notPredicate.address,
-      inputs: [abi.encode(['tuple(address, bytes[])'], [[testPredicate.address, ['0x01']]])]
+      inputs: [],
+      properties: [abi.encode(['tuple(address, bytes[], bytes[])'], [[testPredicate.address, ['0x01'], []]])]
     };
     notFalseProperty = {
       predicateAddress: notPredicate.address,
-      inputs: [abi.encode(['tuple(address, bytes[])'], [[testPredicate.address, []]])]
+      inputs: [],
+      properties: [abi.encode(['tuple(address, bytes[], bytes[])'], [[testPredicate.address, [], []]])]
     };
   });
 

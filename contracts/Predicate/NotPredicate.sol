@@ -21,7 +21,8 @@ contract NotPredicate is LogicalConnective {
     function createPropertyFromInput(bytes[] memory _input) public view returns (types.Property memory) {
         types.Property memory property = types.Property({
             predicateAddress: address(this),
-            inputs: _input
+            inputs: new bytes[](0),
+            properties: _input
         });
         return property;
     }
@@ -29,9 +30,13 @@ contract NotPredicate is LogicalConnective {
     /**
      * @dev Validates a child node of Not property in game tree.
      */
-    function isValidChallenge(bytes[] calldata _inputs, bytes calldata _challengeInput, types.Property calldata _challnge) external returns (bool) {
-        // The valid challenge of not(p) is p and _inputs[0] is p here
-        return keccak256(_inputs[0]) == keccak256(abi.encode(_challnge));
+    function isValidChallenge(
+        types.Property calldata _property,
+        bytes calldata _challengeInput,
+        types.Property calldata _challnge
+    ) external returns (bool) {
+        // The valid challenge of not(p) is p and property.properties[0] is p here
+        return keccak256(_property.properties[0]) == keccak256(abi.encode(_challnge));
     }
     
     /**

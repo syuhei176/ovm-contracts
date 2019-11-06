@@ -20,10 +20,11 @@ contract AndPredicate is LogicalConnective {
 
     event ValueDecided(bool decision, types.Property property);
 
-    function createPropertyFromInput(bytes[] memory _input) public view returns (types.Property memory) {
+    function createPropertyFromInput(bytes[] memory _properties) public view returns (types.Property memory) {
         types.Property memory property = types.Property({
             predicateAddress: address(this),
-            inputs: _input
+            inputs: new bytes[](0),
+            properties: _properties
         });
         return property;
     }
@@ -31,12 +32,16 @@ contract AndPredicate is LogicalConnective {
     /**
      * @dev Validates a child node of And property in game tree.
      */
-    function isValidChallenge(bytes[] calldata _inputs, bytes calldata _challengeInput, types.Property calldata _challnge) external returns (bool) {
+    function isValidChallenge(
+        types.Property calldata _property,
+        bytes calldata _challengeInput,
+        types.Property calldata _challnge
+    ) external returns (bool) {
         // challengeInput is index of child property
         uint256 index = abi.decode(_challengeInput, (uint256));
         // challenge should be not(p[index])
         require(_challnge.predicateAddress == notPredicateAddress);
-        require(keccak256(_inputs[index]) == keccak256(_challnge.inputs[0]));
+        require(keccak256(_property.properties[index]) == keccak256(_challnge.properties[0]));
         return true;
     }
     

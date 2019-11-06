@@ -19,11 +19,11 @@ contract ForAllSuchThatQuantifier is LogicalConnective {
      * @dev Validates a child node of ForAllSuchThat property in game tree.
      */
     function isValidChallenge(
-        bytes[] calldata _inputs,
+        types.Property calldata _property,
         bytes calldata _challengeInput,
         types.Property calldata _challnge
     ) external returns (bool) {
-        types.Property memory quantifier = abi.decode(_inputs[0], (types.Property));
+        types.Property memory quantifier = abi.decode(_property.properties[0], (types.Property));
         bytes[] memory qInputs = new bytes[](quantifier.inputs.length + 1);
         for (uint i = 0;i < quantifier.inputs.length;i++) {
             qInputs[i] = quantifier.inputs[i];
@@ -34,13 +34,12 @@ contract ForAllSuchThatQuantifier is LogicalConnective {
         // challenge should be not(p[quantified])
         require(_challnge.predicateAddress == notPredicateAddress, "should be Not Predicate");
         // check inner property
-        // TODO: replace specified inputs in _inputs[2] by _challengeInput
-        require(keccak256(replaceVariable(_inputs[2], _inputs[1], _challengeInput)) == keccak256(_challnge.inputs[0]), "should be valid inner property");
+        require(keccak256(replaceVariable(_property.properties[1], _property.inputs[0], _challengeInput)) == keccak256(_challnge.properties[0]), "should be valid inner property");
         return true;
     }
 
     /**
-     * @dev Replace placeholder by quantified in propertyBytes
+     * @dev Replace placeholder by quantified in propertyBytes recursively
      */
     function replaceVariable(bytes memory propertyBytes, bytes memory placeholder, bytes memory quantified) private pure returns(bytes memory) {
         types.Property memory property = abi.decode(propertyBytes, (types.Property));
@@ -48,6 +47,9 @@ contract ForAllSuchThatQuantifier is LogicalConnective {
             if(keccak256(property.inputs[i]) == keccak256(placeholder)) {
                 property.inputs[i] = quantified;
             }
+        }
+        for (uint i = 0;i < property.properties.length;i++) {
+            property.properties[i] = replaceVariable(property.properties[i], placeholder, quantified);
         }
         return abi.encode(property);
     }

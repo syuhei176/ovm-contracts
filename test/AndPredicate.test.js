@@ -32,22 +32,26 @@ describe('AndPredicate', () => {
     testPredicate = await deployContract(wallet, TestPredicate, [adjudicationContract.address]);
     trueProperty = {
       predicateAddress: testPredicate.address,
-      inputs: ['0x01']
+      inputs: ['0x01'],
+      properties: []
     };
     andProperty = {
       predicateAddress: andPredicate.address,
-      inputs: [
-        abi.encode(['tuple(address, bytes[])'], [[testPredicate.address, ['0x01']]]),
-        abi.encode(['tuple(address, bytes[])'], [[testPredicate.address, []]]),
+      inputs: [],
+      properties: [
+        abi.encode(['tuple(address, bytes[], bytes[])'], [[testPredicate.address, ['0x01'], []]]),
+        abi.encode(['tuple(address, bytes[], bytes[])'], [[testPredicate.address, [], []]]),
       ]
     };
     notTrueProperty = {
       predicateAddress: notPredicate.address,
-      inputs: [abi.encode(['tuple(address, bytes[])'], [[testPredicate.address, ['0x01']]])]
+      inputs: [],
+      properties: [abi.encode(['tuple(address, bytes[], bytes[])'], [[testPredicate.address, ['0x01'], []]])]
     };
     notFalseProperty = {
       predicateAddress: notPredicate.address,
-      inputs: [abi.encode(['tuple(address, bytes[])'], [[testPredicate.address, []]])]
+      inputs: [],
+      properties: [abi.encode(['tuple(address, bytes[], bytes[])'], [[testPredicate.address, [], []]])]
     };
   });
 

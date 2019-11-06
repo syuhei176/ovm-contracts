@@ -5,6 +5,7 @@ library DataTypes {
     struct Property {
         address predicateAddress;
         bytes[] inputs;
+        bytes[] properties;
     }
 
     enum Decision {

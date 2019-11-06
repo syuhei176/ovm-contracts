@@ -21,7 +21,8 @@ contract TestPredicate is AtomicPredicate {
     function createPropertyFromInput(bytes[] memory _input) public view returns (types.Property memory) {
         types.Property memory property = types.Property({
             predicateAddress: address(this),
-            inputs: _input
+            inputs: _input,
+            properties: new bytes[](0)
         });
         return property;
     }

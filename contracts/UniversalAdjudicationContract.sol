@@ -94,13 +94,17 @@ contract UniversalAdjudicationContract {
         types.ChallengeGame storage game = claims[gameId];
         types.ChallengeGame memory challengingGame = claims[_challengingGameId];
         require(
-            LogicalConnective(game.property.predicateAddress).isValidChallenge(game.property.inputs, _challengeInputs[0], challengingGame.property),
+            LogicalConnective(game.property.predicateAddress).isValidChallenge(
+                game.property,
+                _challengeInputs[0],
+                challengingGame.property
+            ),
             "_challenge isn't valid"
         );
         game.challenges.push(_challengingGameId);
         return true;
     }
-
+    
     /* Helpers */
     function isWhiteListedProperty(types.Property memory _property) private returns (bool) {
         return true; // Always return true until we know what to whitelist
