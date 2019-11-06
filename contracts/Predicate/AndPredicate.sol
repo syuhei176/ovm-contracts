@@ -7,9 +7,11 @@ import {UniversalAdjudicationContract} from "../UniversalAdjudicationContract.so
 
 contract AndPredicate is LogicalConnective {
     address uacAddress;
+    address notPredicateAddress;
 
-    constructor(address _uacAddress) public {
+    constructor(address _uacAddress, address _notPredicateAddress) public {
         uacAddress = _uacAddress;
+        notPredicateAddress = _notPredicateAddress;
     }
 
     struct TestPredicateInput {
@@ -30,9 +32,12 @@ contract AndPredicate is LogicalConnective {
      * @dev Validates a child node of And property in game tree.
      */
     function isValidChallenge(bytes[] calldata _inputs, bytes calldata _challengeInput, types.Property calldata _challnge) external returns (bool) {
-        // The valid challenge of not(p) is p and _inputs[0] is p here
+        // challengeInput is index of child property
         uint256 index = abi.decode(_challengeInput, (uint256));
-        return keccak256(_inputs[index]) == keccak256(abi.encode(_challnge));
+        // challenge should be not(p[index])
+        require(_challnge.predicateAddress == notPredicateAddress);
+        require(keccak256(_inputs[index]) == keccak256(_challnge.inputs[0]));
+        return true;
     }
     
     /**
