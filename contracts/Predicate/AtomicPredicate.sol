@@ -4,5 +4,6 @@ pragma experimental ABIEncoderV2;
 import {DataTypes as types} from "../DataTypes.sol";
 
 interface AtomicPredicate {
-    function decideTrue(bytes[] calldata, bytes calldata) external;
+    function decideTrue(bytes[] calldata) external;
+    function decide(bytes[] calldata) external pure returns (bool);
 }

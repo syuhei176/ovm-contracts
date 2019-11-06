@@ -43,7 +43,7 @@ contract AndPredicate is LogicalConnective {
     /**
      * @dev Can decide true when all child properties are decided true
      */
-    function decideTrue(types.Property[] memory innerProperties, bytes memory _witness) public {
+    function decideTrue(types.Property[] memory innerProperties) public {
         for (uint i = 0;i < innerProperties.length;i++) {
             require(
                 UniversalAdjudicationContract(uacAddress).isDecided(innerProperties[i]),
