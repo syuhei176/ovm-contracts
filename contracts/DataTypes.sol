@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 library DataTypes {
     struct Property {
         address predicateAddress;
+        // Every inputs are bytes. Each Atomic Predicate decode inputs to the specific type.
         bytes[] inputs;
     }
 
