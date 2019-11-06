@@ -26,12 +26,16 @@ contract TestPredicate is AtomicPredicate {
         return property;
     }
 
-    function decideTrue(bytes[] memory _inputs, bytes memory _witness) public {
-        require(_inputs.length > 0, "This property is not true");
+    function decideTrue(bytes[] memory _inputs) public {
+        require(this.decide(_inputs), "This property is not true");
 
         types.Property memory property = createPropertyFromInput(_inputs);
         UniversalAdjudicationContract(uacAddress).decideProperty(property, true);
 
         emit ValueDecided(true, _inputs);
+    }
+
+    function decide(bytes[] calldata _inputs) external pure returns (bool) {
+        return _inputs.length > 0 && keccak256(_inputs[0]) == keccak256(hex"01");
     }
 }

@@ -97,7 +97,7 @@ describe('UniversalAdjudicationContract', () => {
       const gameId = await adjudicationContract.getPropertyId(notProperty);
       const challengingGameId = await adjudicationContract.getPropertyId(trueProperty);
       await adjudicationContract.challenge(gameId, ["0x"], challengingGameId);
-      await testPredicate.decideTrue(['0x01'], '0x');
+      await testPredicate.decideTrue(['0x01']);
       await adjudicationContract.decideClaimToFalse(gameId, challengingGameId);
       const game = await adjudicationContract.getGame(gameId);
       // game should be decided false
