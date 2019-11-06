@@ -7,6 +7,7 @@ const NotPredicate = require('../build/NotPredicate');
 const TestPredicate = require('../build/TestPredicate');
 const ethers = require('ethers');
 const abi = new ethers.utils.AbiCoder();
+const { increaseBlocks } = require('./helpers/increaseBlocks');
 
 chai.use(solidity);
 chai.use(require('chai-as-promised'));
@@ -25,12 +26,11 @@ describe('UniversalAdjudicationContract', () => {
   const False = 2;
 
   before(async () => {
-    utils = await deployContract(wallet, Utils, []);
-    link(UniversalAdjudicationContract, 'contracts/Utils.sol:Utils', utils.address);
-  });
+		utils = await deployContract(wallet, Utils, []);
+  })
 
   beforeEach(async () => {
-    adjudicationContract = await deployContract(wallet, UniversalAdjudicationContract);
+    adjudicationContract = await deployContract(wallet, UniversalAdjudicationContract, [utils.address]);
     notPredicate = await deployContract(wallet, NotPredicate, [adjudicationContract.address]);
     testPredicate = await deployContract(wallet, TestPredicate, [adjudicationContract.address]);
     trueProperty = {
@@ -132,17 +132,3 @@ describe('UniversalAdjudicationContract', () => {
     });
   });
 });
-
-async function increaseBlocks(wallets, num) {
-  for(let i = 0;i < num;i++) {
-    await increaseBlock(wallets)
-  }
-}
-
-async function increaseBlock(wallets) {
-  let tx = {
-    to: wallets[1].address,
-    value: ethers.utils.parseEther('0.0')
-  };
-  await wallets[0].sendTransaction(tx);
-}

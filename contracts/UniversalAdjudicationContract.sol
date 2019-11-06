@@ -13,12 +13,17 @@ contract UniversalAdjudicationContract {
     mapping (bytes32 => types.ChallengeGame) public claims;
     mapping (bytes32 => bool) contradictions;
     enum RemainingClaimIndex {Property, CounterProperty}
+    Utils utils;
+
+    constructor(address _utilsAddress) public {
+        utils = Utils(_utilsAddress);
+    }
 
     function claimProperty(types.Property memory _claim) public {
         // get the id of this property
-        bytes32 claimedPropertyId = Utils.getPropertyId(_claim);
+        bytes32 claimedPropertyId = utils.getPropertyId(_claim);
         // make sure a claim on this property has not already been made
-        require(Utils.isEmptyClaim(claims[claimedPropertyId]), "claim isn't empty");
+        require(isEmptyClaim(claims[claimedPropertyId]), "claim isn't empty");
 
         // create the claim status. Always begins with no proven contradictions
         types.ChallengeGame memory newGame = types.ChallengeGame(_claim, new bytes32[](0), types.Decision.Undecided, block.number);
@@ -47,7 +52,7 @@ contract UniversalAdjudicationContract {
         types.ChallengeGame storage game = claims[_gameId];
         types.ChallengeGame memory challengingGame = claims[_challengingGameId];
         // check _challenge is in _game.challenges
-        bytes32 challengingGameId = Utils.getPropertyId(challengingGame.property);
+        bytes32 challengingGameId = utils.getPropertyId(challengingGame.property);
         bool isValidChallenge = false;
         for (uint256 i = 0;i < game.challenges.length; i++) {
             if(game.challenges[i] == challengingGameId) {
@@ -71,7 +76,7 @@ contract UniversalAdjudicationContract {
     function decideProperty(types.Property memory _property, bool _decision) public {
         // only the prodicate can decide a claim
         require(msg.sender == _property.predicateAddress, "msg.sender should be predicateAddress");
-        bytes32 decidedPropertyId = Utils.getPropertyId(_property);
+        bytes32 decidedPropertyId = utils.getPropertyId(_property);
 
         // if the decision is true, automatically decide its claim now
         if (_decision) {
@@ -102,7 +107,7 @@ contract UniversalAdjudicationContract {
     }
 
     function isDecided(types.Property memory _property) public returns (bool) {
-        return claims[Utils.getPropertyId(_property)].decision == types.Decision.True;
+        return claims[utils.getPropertyId(_property)].decision == types.Decision.True;
     }
 
     function getGame(bytes32 claimId) public view returns (types.ChallengeGame memory) {
@@ -110,6 +115,10 @@ contract UniversalAdjudicationContract {
     }
 
     function getPropertyId(types.Property memory _property) public view returns (bytes32) {
-        return Utils.getPropertyId(_property);
+        return utils.getPropertyId(_property);
+    }
+
+    function isEmptyClaim(types.ChallengeGame memory _game) internal pure returns (bool) {
+        return _game.createdBlock == 0;
     }
 }
