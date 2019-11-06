@@ -19,7 +19,10 @@ describe('UniversalAdjudicationContract', () => {
   let adjudicationContract;
   let utils;
   let testPredicate, notPredicate;
-  let trueProperty, notProperty;
+  let trueProperty, notProperty, notFalseProperty;
+  const Undecided = 0;
+  const True = 1;
+  const False = 2;
 
   before(async () => {
     utils = await deployContract(wallet, Utils, []);
@@ -34,9 +37,17 @@ describe('UniversalAdjudicationContract', () => {
       predicateAddress: testPredicate.address,
       inputs: ['0x01']
     };
+    falseProperty = {
+      predicateAddress: testPredicate.address,
+      inputs: []
+    };
     notProperty = {
       predicateAddress: notPredicate.address,
       inputs: [abi.encode(['tuple(address, bytes[])'], [[testPredicate.address, ['0x01']]])]
+    };
+    notFalseProperty = {
+      predicateAddress: notPredicate.address,
+      inputs: [abi.encode(['tuple(address, bytes[])'], [[testPredicate.address, []]])]
     };
   });
 
@@ -49,6 +60,7 @@ describe('UniversalAdjudicationContract', () => {
       // check newly stored property is equal to the claimed property
       assert.equal(game.property.predicateAddress, notProperty.predicateAddress);
       assert.equal(game.property.input, notProperty.input);
+      assert.equal(game.decision, Undecided);
     });
     it('fails to add an already claimed property and throws Error', async () => {
       // claim a property
@@ -59,7 +71,7 @@ describe('UniversalAdjudicationContract', () => {
   });
 
   describe('challenge', () => {
-    it('challenge', async () => {
+    it('not(true) is challenged by true', async () => {
       await adjudicationContract.claimProperty(notProperty);
       await adjudicationContract.claimProperty(trueProperty);
       const gameId = await adjudicationContract.getPropertyId(notProperty);
@@ -69,10 +81,17 @@ describe('UniversalAdjudicationContract', () => {
 
       assert.equal(game.challenges.length, 1);
     });
+    it('not(true) fail to be challenged by not(false)', async () => {
+      await adjudicationContract.claimProperty(notProperty);
+      await adjudicationContract.claimProperty(notFalseProperty);
+      const gameId = await adjudicationContract.getPropertyId(notProperty);
+      const challengingGameId = await adjudicationContract.getPropertyId(notFalseProperty);
+      await expect(adjudicationContract.challenge(gameId, ["0x"], challengingGameId)).to.be.reverted;
+    });
   });
 
   describe('decideClaimToFalse', () => {
-    it('game should be decided false', async () => {
+    it('not(true) decided false with a challenge by true', async () => {
       await adjudicationContract.claimProperty(notProperty);
       await adjudicationContract.claimProperty(trueProperty);
       const gameId = await adjudicationContract.getPropertyId(notProperty);
@@ -82,12 +101,20 @@ describe('UniversalAdjudicationContract', () => {
       await adjudicationContract.decideClaimToFalse(gameId, challengingGameId);
       const game = await adjudicationContract.getGame(gameId);
       // game should be decided false
-      assert.equal(game.decision, 2);
+      assert.equal(game.decision, False);
+    });
+    it('not(false) fail to decided false without challenges', async () => {
+      await adjudicationContract.claimProperty(notFalseProperty);
+      await adjudicationContract.claimProperty(falseProperty);
+      const gameId = await adjudicationContract.getPropertyId(notFalseProperty);
+      const challengingGameId = await adjudicationContract.getPropertyId(falseProperty);
+      await adjudicationContract.challenge(gameId, ["0x"], challengingGameId);
+      await expect(adjudicationContract.decideClaimToFalse(gameId, challengingGameId)).to.be.reverted;
     });
   });
 
   describe('decideClaimToTrue', () => {
-    it('game should be decided true', async () => {
+    it('not(true) decided true because there are no challenges', async () => {
       await adjudicationContract.claimProperty(notProperty);
       const gameId = await adjudicationContract.getPropertyId(notProperty);
       // increase 10 blocks to pass dispute period
@@ -96,7 +123,7 @@ describe('UniversalAdjudicationContract', () => {
 
       const game = await adjudicationContract.getGame(gameId);
       // game should be decided true
-      assert.equal(game.decision, 1);
+      assert.equal(game.decision, True);
     });
     it('fail to decided true because dispute period has not passed', async () => {
       await adjudicationContract.claimProperty(notProperty);
