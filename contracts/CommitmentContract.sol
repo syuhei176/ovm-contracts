@@ -8,7 +8,6 @@ import {DataTypes as types} from "./DataTypes.sol";
  * @notice This is mock commitment chain contract. Spec is http://spec.plasma.group/en/latest/src/02-contracts/commitment-contract.html
  */
 contract CommitmentContract{
-    uint64 public blockNumber;
     // Single operator address
     address public operatorAddress;
     // Current block number of commitment chain
