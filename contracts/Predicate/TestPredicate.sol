@@ -1,18 +1,11 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
-contract DataTypes {
-    struct Property {
-        address predicateAddress;
-        bytes input;
-    }
-}
+import {DataTypes as types} from "../DataTypes.sol";
+import "./AtomicPredicate.sol";
+import {UniversalAdjudicationContract} from "../UniversalAdjudicationContract.sol";
 
-contract UniversalAdjudicationContract {
-    function decideProperty(DataTypes.Property memory, bool) public {}
-}
-
-contract TestPredicate {
+contract TestPredicate is AtomicPredicate {
     address uacAddress;
 
     constructor(address _uacAddress) public {
@@ -23,26 +16,22 @@ contract TestPredicate {
         uint value;
     }
 
-    event ValueDecided(bool decision, uint value);
+    event ValueDecided(bool decision, bytes[] inputs);
 
-    function createPropertyFromInput(TestPredicateInput memory _input) public view returns (DataTypes.Property memory) {
-        DataTypes.Property memory property = DataTypes.Property({predicateAddress:address(this), input:abi.encode(_input)});
+    function createPropertyFromInput(bytes[] memory _input) public view returns (types.Property memory) {
+        types.Property memory property = types.Property({
+            predicateAddress: address(this),
+            inputs: _input
+        });
         return property;
     }
 
-    function decideTrue(TestPredicateInput memory _input) public {
-        DataTypes.Property memory property = createPropertyFromInput(_input);
+    function decideTrue(bytes[] memory _inputs, bytes memory _witness) public {
+        require(_inputs.length > 0, "This property is not true");
 
+        types.Property memory property = createPropertyFromInput(_inputs);
         UniversalAdjudicationContract(uacAddress).decideProperty(property, true);
 
-        emit ValueDecided(true, _input.value);
-    }
-
-    function decideFalse(TestPredicateInput memory _input) public {
-        DataTypes.Property memory property = createPropertyFromInput(_input);
-
-        UniversalAdjudicationContract(uacAddress).decideProperty(property, false);
-
-        emit ValueDecided(false, _input.value);
+        emit ValueDecided(true, _inputs);
     }
 }

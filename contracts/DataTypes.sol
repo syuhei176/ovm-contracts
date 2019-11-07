@@ -1,31 +1,24 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
-contract DataTypes {
+library DataTypes {
     struct Property {
         address predicateAddress;
-        bytes input;
+        // Every inputs are bytes. Each Atomic Predicate decode inputs to the specific type.
+        bytes[] inputs;
     }
 
-    struct Contradiction {
+    enum Decision {
+        Undecided,
+        True,
+        False
+    }
+
+    struct ChallengeGame {
         Property property;
-        Property counterProperty;
-    }
-
-    struct ClaimStatus {
-        Property property;
-        uint numProvenContradictions;
-        uint decidedAfter; // claims can be decided after this block number
-    }
-
-    struct ImplicationProofElement {
-        Property implication;
-        bytes[] witness;
-    }
-
-    struct Challenge {
-        Checkpoint challengedCheckpoint;
-        Checkpoint challengingCheckpoint;
+        bytes32[] challenges;
+        Decision decision;
+        uint createdBlock;
     }
 
     struct Range {
