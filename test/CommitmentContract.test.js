@@ -23,12 +23,12 @@ describe('CommitmentContract', () => {
       await expect(commitmentContract.submitRoot(1, root))
         .to.emit(commitmentContract, 'BlockSubmitted')
     });
-    it('fail to submit root because unregistered operator address', async () => {
+    it('fail to submit root because of unregistered operator address', async () => {
       const commitmentContractFromOtherWallet = commitmentContract.connect(wallets[1]);
       await expect(commitmentContractFromOtherWallet.submitRoot(1, root))
         .to.be.reverted;
     });
-    it('fail to submit root because invalid block number', async () => {
+    it('fail to submit root because of invalid block number', async () => {
       await expect(commitmentContract.submitRoot(0, root))
         .to.be.reverted;
     });
