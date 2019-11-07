@@ -9,13 +9,35 @@ import {DataTypes as types} from "./DataTypes.sol";
  */
 contract CommitmentContract{
     uint64 public blockNumber;
+    // Single operator address
+    address public operatorAddress;
+    // Current block number of commitment chain
+    uint256 public currentBlock = 0;
+    // History of Merkle Root
+    mapping(uint256 => bytes32) public blocks;
+
     // Event definitions
     event BlockSubmitted(
         uint64 blockNumber,
         bytes32 root
     );
 
-    function submit_root(uint64 blkNumber, bytes32 _root) public {
+    modifier isOperator() {
+        require(msg.sender == operatorAddress, "msg.sender should be registered operator address");
+        _;
+    }
+
+    constructor(address _operatorAddress) public {
+        operatorAddress = _operatorAddress;
+    }
+
+    function submitRoot(uint64 blkNumber, bytes32 _root)
+        public
+        isOperator
+    {
+        require(currentBlock + 1 == blkNumber, "blkNumber should be next block");
+        blocks[blkNumber] = _root;
+        currentBlock = blkNumber;
         emit BlockSubmitted(blkNumber, _root);
     }
 
