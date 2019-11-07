@@ -13,6 +13,11 @@ contract UniversalAdjudicationContract {
     mapping (bytes32 => types.ChallengeGame) public claims;
     mapping (bytes32 => bool) contradictions;
     enum RemainingClaimIndex {Property, CounterProperty}
+    address public notPredicateAddress;
+
+    function setNotPredicateAddress(address _notPredicateAddress) public {
+        notPredicateAddress = _notPredicateAddress;
+    }
 
     function claimProperty(types.Property memory _claim) public {
         // get the id of this property
@@ -81,16 +86,36 @@ contract UniversalAdjudicationContract {
         }
     }
 
+    /**
+     * @dev Challenges game with challenges
+     */
     function challenge(
         bytes32 gameId,
-        bytes[] memory _challengeInputs,
+        types.Challenge[] memory _challenges,
         bytes32 _challengingGameId
     ) public returns (bool) {
         types.ChallengeGame storage game = claims[gameId];
         types.ChallengeGame memory challengingGame = claims[_challengingGameId];
+        // check the first valid challenge
         require(
-            LogicalConnective(game.property.predicateAddress).isValidChallenge(game.property.inputs, _challengeInputs[0], challengingGame.property),
-            "_challenge isn't valid"
+            LogicalConnective(game.property.predicateAddress).isValidChallenge(game.property.inputs, _challenges[0].challengeInput, _challenges[0].challengeProperty),
+            "_challenge[0] isn't valid"
+        );
+        // check left challenges
+        for(uint i = 0;i < _challenges.length - 1;i++) {
+            // if i % 2 is 0, it's counter parties turn. it can be skipped if challenge.predicate is NotPredicate.
+            // Challenge can be skipped if it is NotPredicate because Not(something) don't require challengeInput
+            if(i % 2 == 0) {
+                require(_challenges[i].challengeProperty.predicateAddress == notPredicateAddress, "skipping challenge should be NotPredicate");
+            }
+            require(
+                LogicalConnective(game.property.predicateAddress).isValidChallenge(_challenges[i].challengeProperty.inputs, _challenges[i].challengeInput, _challenges[i + 1].challengeProperty),
+                "_challenge[i] isn't valid"
+            );
+        }
+        require(
+            keccak256(abi.encode(_challenges[_challenges.length - 1].challengeProperty)) == keccak256(abi.encode(challengingGame.property)),
+            ""
         );
         game.challenges.push(_challengingGameId);
         return true;

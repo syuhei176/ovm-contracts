@@ -32,6 +32,7 @@ describe('UniversalAdjudicationContract', () => {
   beforeEach(async () => {
     adjudicationContract = await deployContract(wallet, UniversalAdjudicationContract);
     notPredicate = await deployContract(wallet, NotPredicate, [adjudicationContract.address]);
+    await adjudicationContract.setNotPredicateAddress(notPredicate.address);
     testPredicate = await deployContract(wallet, TestPredicate, [adjudicationContract.address]);
     trueProperty = {
       predicateAddress: testPredicate.address,
@@ -76,7 +77,7 @@ describe('UniversalAdjudicationContract', () => {
       await adjudicationContract.claimProperty(trueProperty);
       const gameId = await adjudicationContract.getPropertyId(notProperty);
       const challengingGameId = await adjudicationContract.getPropertyId(trueProperty);
-      await adjudicationContract.challenge(gameId, ["0x"], challengingGameId);
+      await adjudicationContract.challenge(gameId, [["0x", trueProperty]], challengingGameId);
       const game = await adjudicationContract.getGame(gameId);
 
       assert.equal(game.challenges.length, 1);
@@ -86,7 +87,7 @@ describe('UniversalAdjudicationContract', () => {
       await adjudicationContract.claimProperty(notFalseProperty);
       const gameId = await adjudicationContract.getPropertyId(notProperty);
       const challengingGameId = await adjudicationContract.getPropertyId(notFalseProperty);
-      await expect(adjudicationContract.challenge(gameId, ["0x"], challengingGameId)).to.be.reverted;
+      await expect(adjudicationContract.challenge(gameId, [["0x", notFalseProperty]], challengingGameId)).to.be.reverted;
     });
   });
 
@@ -96,7 +97,7 @@ describe('UniversalAdjudicationContract', () => {
       await adjudicationContract.claimProperty(trueProperty);
       const gameId = await adjudicationContract.getPropertyId(notProperty);
       const challengingGameId = await adjudicationContract.getPropertyId(trueProperty);
-      await adjudicationContract.challenge(gameId, ["0x"], challengingGameId);
+      await adjudicationContract.challenge(gameId, [["0x", trueProperty]], challengingGameId);
       await testPredicate.decideTrue(['0x01'], '0x');
       await adjudicationContract.decideClaimToFalse(gameId, challengingGameId);
       const game = await adjudicationContract.getGame(gameId);
@@ -108,7 +109,7 @@ describe('UniversalAdjudicationContract', () => {
       await adjudicationContract.claimProperty(falseProperty);
       const gameId = await adjudicationContract.getPropertyId(notFalseProperty);
       const challengingGameId = await adjudicationContract.getPropertyId(falseProperty);
-      await adjudicationContract.challenge(gameId, ["0x"], challengingGameId);
+      await adjudicationContract.challenge(gameId, [["0x", falseProperty]], challengingGameId);
       await expect(adjudicationContract.decideClaimToFalse(gameId, challengingGameId)).to.be.reverted;
     });
   });
@@ -129,6 +130,46 @@ describe('UniversalAdjudicationContract', () => {
       await adjudicationContract.claimProperty(notProperty);
       const gameId = await adjudicationContract.getPropertyId(notProperty);
       await expect(adjudicationContract.decideClaimToTrue(gameId)).to.be.reverted;
+    });
+  });
+
+  describe('challenge nested property', () => {
+    it('not(not(not(true))) is challenged by true', async () => {
+      const encodedTrueProperty = abi.encode(['tuple(address, bytes[])'], [[testPredicate.address, ['0x01']]])
+      const encodedNotTrueProperty = abi.encode(['tuple(address, bytes[])'], [[notPredicate.address, [encodedTrueProperty]]])
+      const encodedNotNotTrueProperty = abi.encode(['tuple(address, bytes[])'], [[notPredicate.address, [encodedNotTrueProperty]]])
+      const notNotNotTrueProperty = {
+        predicateAddress: notPredicate.address,
+        inputs: [encodedNotNotTrueProperty]
+      };
+      const challenges = [
+        {
+          challengeInput: "0x",
+          challengeProperty: {
+            predicateAddress: notPredicate.address,
+            inputs: [encodedNotTrueProperty]
+          }
+        },
+        {
+          challengeInput: "0x",
+          challengeProperty: {
+            predicateAddress: notPredicate.address,
+            inputs: [encodedTrueProperty]
+          }
+        },
+        {
+          challengeInput: "0x",
+          challengeProperty: trueProperty
+        },
+      ]
+      await adjudicationContract.claimProperty(notNotNotTrueProperty);
+      await adjudicationContract.claimProperty(trueProperty);
+      const gameId = await adjudicationContract.getPropertyId(notNotNotTrueProperty);
+      const challengingGameId = await adjudicationContract.getPropertyId(trueProperty);
+      await adjudicationContract.challenge(gameId, challenges, challengingGameId);
+      const game = await adjudicationContract.getGame(gameId);
+
+      assert.equal(game.challenges.length, 1);
     });
   });
 });
