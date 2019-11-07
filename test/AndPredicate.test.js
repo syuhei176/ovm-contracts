@@ -52,7 +52,7 @@ describe('AndPredicate', () => {
   });
 
   describe('isValidChallenge', () => {
-    it('validate challenge with 0', async () => {
+    it('suceed to challenge and(t, f) with not(t)', async () => {
       const challengeInput = abi.encode(['uint256'], [0]);
       await adjudicationContract.claimProperty(andProperty);
       await adjudicationContract.claimProperty(notTrueProperty);
@@ -62,7 +62,7 @@ describe('AndPredicate', () => {
       const game = await adjudicationContract.getGame(gameId);
       assert.equal(game.challenges.length, 1);
     });
-    it('validate challenge with 1', async () => {
+    it('suceed to challenge and(t, f) with not(f)', async () => {
       const challengeInput = abi.encode(['uint256'], [1]);
       await adjudicationContract.claimProperty(andProperty);
       await adjudicationContract.claimProperty(notFalseProperty);
@@ -72,7 +72,7 @@ describe('AndPredicate', () => {
       const game = await adjudicationContract.getGame(gameId);
       assert.equal(game.challenges.length, 1);
     });
-    it('fail to validate challenge with 1', async () => {
+    it('fail to challenge and(t, f) with t', async () => {
       const challengeInput = abi.encode(['uint256'], [1]);
       await adjudicationContract.claimProperty(andProperty);
       await adjudicationContract.claimProperty(trueProperty);
