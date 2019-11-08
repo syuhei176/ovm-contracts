@@ -30,7 +30,7 @@ describe('ForAllSuchThatQuantifier', () => {
     adjudicationContract = await deployContract(wallet, UniversalAdjudicationContract, [utils.address]);
     notPredicate = await deployContract(wallet, NotPredicate, [adjudicationContract.address]);
     andPredicate = await deployContract(wallet, AndPredicate, [adjudicationContract.address, notPredicate.address]);
-    forAllSuchThat = await deployContract(wallet, ForAllSuchThatQuantifier, [adjudicationContract.address, notPredicate.address]);
+    forAllSuchThat = await deployContract(wallet, ForAllSuchThatQuantifier, [adjudicationContract.address, notPredicate.address, andPredicate.address]);
     testPredicate = await deployContract(wallet, TestPredicate, [adjudicationContract.address]);
     trueProperty = {
       predicateAddress: testPredicate.address,
