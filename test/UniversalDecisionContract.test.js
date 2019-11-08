@@ -8,6 +8,7 @@ const TestPredicate = require('../build/TestPredicate');
 const ethers = require('ethers');
 const abi = new ethers.utils.AbiCoder();
 const { increaseBlocks } = require('./helpers/increaseBlocks');
+const { getGameIdFromProperty } = require('./helpers/getGameId')
 
 chai.use(solidity);
 chai.use(require('chai-as-promised'));
@@ -54,7 +55,7 @@ describe('UniversalAdjudicationContract', () => {
   describe('claimProperty', () => {
     it('adds a claim', async () => {
       await adjudicationContract.claimProperty(notProperty);
-      const claimId = await adjudicationContract.getPropertyId(notProperty);
+      const claimId = getGameIdFromProperty(notProperty);
       const game = await adjudicationContract.getGame(claimId);
 
       // check newly stored property is equal to the claimed property
@@ -74,8 +75,8 @@ describe('UniversalAdjudicationContract', () => {
     it('not(true) is challenged by true', async () => {
       await adjudicationContract.claimProperty(notProperty);
       await adjudicationContract.claimProperty(trueProperty);
-      const gameId = await adjudicationContract.getPropertyId(notProperty);
-      const challengingGameId = await adjudicationContract.getPropertyId(trueProperty);
+      const gameId = getGameIdFromProperty(notProperty);
+      const challengingGameId = getGameIdFromProperty(trueProperty);
       await adjudicationContract.challenge(gameId, ["0x"], challengingGameId);
       const game = await adjudicationContract.getGame(gameId);
 
@@ -84,8 +85,8 @@ describe('UniversalAdjudicationContract', () => {
     it('not(true) fail to be challenged by not(false)', async () => {
       await adjudicationContract.claimProperty(notProperty);
       await adjudicationContract.claimProperty(notFalseProperty);
-      const gameId = await adjudicationContract.getPropertyId(notProperty);
-      const challengingGameId = await adjudicationContract.getPropertyId(notFalseProperty);
+      const gameId = getGameIdFromProperty(notProperty);
+      const challengingGameId = getGameIdFromProperty(notFalseProperty);
       await expect(adjudicationContract.challenge(gameId, ["0x"], challengingGameId)).to.be.reverted;
     });
   });
@@ -94,8 +95,8 @@ describe('UniversalAdjudicationContract', () => {
     it('not(true) decided false with a challenge by true', async () => {
       await adjudicationContract.claimProperty(notProperty);
       await adjudicationContract.claimProperty(trueProperty);
-      const gameId = await adjudicationContract.getPropertyId(notProperty);
-      const challengingGameId = await adjudicationContract.getPropertyId(trueProperty);
+      const gameId = getGameIdFromProperty(notProperty);
+      const challengingGameId = getGameIdFromProperty(trueProperty);
       await adjudicationContract.challenge(gameId, ["0x"], challengingGameId);
       await testPredicate.decideTrue(['0x01'], '0x');
       await adjudicationContract.decideClaimToFalse(gameId, challengingGameId);
@@ -106,8 +107,8 @@ describe('UniversalAdjudicationContract', () => {
     it('not(false) fail to decided false without challenges', async () => {
       await adjudicationContract.claimProperty(notFalseProperty);
       await adjudicationContract.claimProperty(falseProperty);
-      const gameId = await adjudicationContract.getPropertyId(notFalseProperty);
-      const challengingGameId = await adjudicationContract.getPropertyId(falseProperty);
+      const gameId = getGameIdFromProperty(notFalseProperty);
+      const challengingGameId = getGameIdFromProperty(falseProperty);
       await adjudicationContract.challenge(gameId, ["0x"], challengingGameId);
       await expect(adjudicationContract.decideClaimToFalse(gameId, challengingGameId)).to.be.reverted;
     });
@@ -116,7 +117,7 @@ describe('UniversalAdjudicationContract', () => {
   describe('decideClaimToTrue', () => {
     it('not(true) decided true because there are no challenges', async () => {
       await adjudicationContract.claimProperty(notProperty);
-      const gameId = await adjudicationContract.getPropertyId(notProperty);
+      const gameId = getGameIdFromProperty(notProperty);
       // increase 10 blocks to pass dispute period
       await increaseBlocks(wallets, 10);
       await adjudicationContract.decideClaimToTrue(gameId);
@@ -127,7 +128,7 @@ describe('UniversalAdjudicationContract', () => {
     });
     it('fail to decided true because dispute period has not passed', async () => {
       await adjudicationContract.claimProperty(notProperty);
-      const gameId = await adjudicationContract.getPropertyId(notProperty);
+      const gameId = getGameIdFromProperty(notProperty);
       await expect(adjudicationContract.decideClaimToTrue(gameId)).to.be.reverted;
     });
   });

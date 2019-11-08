@@ -8,6 +8,7 @@ const NotPredicate = require('../build/NotPredicate');
 const TestPredicate = require('../build/TestPredicate');
 const ethers = require('ethers');
 const abi = new ethers.utils.AbiCoder();
+const { getGameIdFromProperty } = require('./helpers/getGameId')
 
 chai.use(solidity);
 chai.use(require('chai-as-promised'));
@@ -56,8 +57,8 @@ describe('AndPredicate', () => {
       const challengeInput = abi.encode(['uint256'], [0]);
       await adjudicationContract.claimProperty(andProperty);
       await adjudicationContract.claimProperty(notTrueProperty);
-      const gameId = await adjudicationContract.getPropertyId(andProperty);
-      const challengingGameId = await adjudicationContract.getPropertyId(notTrueProperty);
+      const gameId = getGameIdFromProperty(andProperty);
+      const challengingGameId = getGameIdFromProperty(notTrueProperty);
       await adjudicationContract.challenge(gameId, [challengeInput], challengingGameId);
       const game = await adjudicationContract.getGame(gameId);
       assert.equal(game.challenges.length, 1);
@@ -66,8 +67,8 @@ describe('AndPredicate', () => {
       const challengeInput = abi.encode(['uint256'], [1]);
       await adjudicationContract.claimProperty(andProperty);
       await adjudicationContract.claimProperty(notFalseProperty);
-      const gameId = await adjudicationContract.getPropertyId(andProperty);
-      const challengingGameId = await adjudicationContract.getPropertyId(notFalseProperty);
+      const gameId = getGameIdFromProperty(andProperty);
+      const challengingGameId = getGameIdFromProperty(notFalseProperty);
       await adjudicationContract.challenge(gameId, [challengeInput], challengingGameId);
       const game = await adjudicationContract.getGame(gameId);
       assert.equal(game.challenges.length, 1);
@@ -76,8 +77,8 @@ describe('AndPredicate', () => {
       const challengeInput = abi.encode(['uint256'], [1]);
       await adjudicationContract.claimProperty(andProperty);
       await adjudicationContract.claimProperty(trueProperty);
-      const gameId = await adjudicationContract.getPropertyId(andProperty);
-      const challengingGameId = await adjudicationContract.getPropertyId(trueProperty);
+      const gameId = getGameIdFromProperty(andProperty);
+      const challengingGameId = getGameIdFromProperty(trueProperty);
       await expect(adjudicationContract.challenge(gameId, [challengeInput], challengingGameId)).to.be.reverted;
     });
   });
