@@ -49,7 +49,7 @@ describe('DepositContract', () => {
         .to.emit(depositContract, 'CheckpointFinalized')
         .to.emit(depositContract, 'LogCheckpoint')
     })
-    it('fail to deposit 1 MockToken because not approved', async () => {
+    it('fail to deposit 1 MockToken because of not approved', async () => {
       await expect(depositContract.deposit(1, stateObject))
         .to.be.reverted;
     })
@@ -74,7 +74,7 @@ describe('DepositContract', () => {
         .to.emit(depositContract, 'CheckpointFinalized')
         .to.emit(depositContract, 'LogCheckpoint')
     })
-    it('fail to finalize checkpoint because of checkpoint claim not decided true', async () => {
+    it('fail to finalize checkpoint because checkpoint claim not decided true', async () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         commitmentContractAddress,
@@ -140,7 +140,7 @@ describe('DepositContract', () => {
       await expect(mockOwnershipPredicate.finalizeExit(exitPropertyCreator([0, 5]), 5, {gasLimit: 1000000}))
       .to.emit(depositContract, 'ExitFinalized')
     })
-    it('fail to finalize exit because of calling not through ownership predicate', async () => {
+    it('fail to finalize exit because it is not called from ownership predicate', async () => {
       const stateObject = {
         predicateAddress: mockOwnershipPredicate.address,
         inputs: [abi.encode(['address'], [wallet.address])]
