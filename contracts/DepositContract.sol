@@ -39,13 +39,17 @@ contract DepositContract {
         universalAdjudicationContract = UniversalAdjudicationContract(_universalAdjudicationContract);
     }
 
+    /**
+     * @dev deposit ERC20 token to deposit contract with initial state.
+     *     following https://docs.plasma.group/projects/spec/en/latest/src/02-contracts/deposit-contract.html#deposit
+     */
     function deposit(uint256 _amount, types.Property memory _initialState) public {
         erc20.transferFrom(msg.sender, address(this), _amount);
         types.Range memory depositRange = types.Range({start:totalDeposited, end:totalDeposited + _amount});
         types.StateUpdate memory stateUpdate = types.StateUpdate({
             stateObject: _initialState,
             range: depositRange,
-            plasmaBlockNumber: getLatestPlasmaBlockNumber(),
+            plasmaBlockNumber: getLatestPlasmaBlockNumber() - 1,
             depositAddress: address(this)
         });
         types.Checkpoint memory checkpoint = types.Checkpoint({
@@ -135,7 +139,7 @@ contract DepositContract {
 
     /* Helpers */
     function getLatestPlasmaBlockNumber() private returns (uint256) {
-        return 0;
+        return commitmentContract.currentBlock();
     }
 
     function getCheckpointId(types.Checkpoint memory _checkpoint) private pure returns (bytes32) {

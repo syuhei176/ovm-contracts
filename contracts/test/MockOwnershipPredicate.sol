@@ -4,9 +4,9 @@ pragma experimental ABIEncoderV2;
 import { AtomicPredicate } from "../Predicate/AtomicPredicate.sol";
 import "../DepositContract.sol";
 
-
 /**
- * @dev Mock of compiled ownership predicate
+ * @title MockOwnershipPredicate
+ * @notice Mock of compiled ownership predicate
  */
 contract MockOwnershipPredicate is AtomicPredicate {
     address public depositContractAddress;

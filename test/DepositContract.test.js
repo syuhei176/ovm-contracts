@@ -2,6 +2,7 @@ const chai = require('chai')
 const {createMockProvider, deployContract, getWallets, solidity} = require('ethereum-waffle')
 const DepositContract = require('../build/DepositContract')
 const MockToken = require('../build/MockToken')
+const MockCommitmentContract = require('../build/MockCommitmentContract')
 const MockOwnershipPredicate = require('../build/MockOwnershipPredicate')
 const TestPredicate = require('../build/TestPredicate')
 const MockAdjudicationContract = require('../build/MockAdjudicationContract')
@@ -19,9 +20,10 @@ describe('DepositContract', () => {
   let mockTokenContract, testPredicate, mockOwnershipPredicate
   // mock adjudicator contracts
   let mockAdjudicationContract, mockFailingAdjudicationContract
-  let commitmentContractAddress = ethers.constants.AddressZero
+  let mockCommitmentContract
 
   beforeEach(async () => {
+    mockCommitmentContract = await deployContract(wallet, MockCommitmentContract, []);
     mockAdjudicationContract = await deployContract(wallet, MockAdjudicationContract, [false]);
     mockFailingAdjudicationContract = await deployContract(wallet, MockAdjudicationContract, [true]);
     testPredicate = await deployContract(wallet, TestPredicate, [mockAdjudicationContract.address]);
@@ -35,7 +37,7 @@ describe('DepositContract', () => {
     beforeEach(async () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address, 
-        commitmentContractAddress,
+        mockCommitmentContract.address,
         mockAdjudicationContract.address
       ])
       stateObject = {
@@ -67,7 +69,7 @@ describe('DepositContract', () => {
     it('succeed to finalize checkpoint', async () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
-        commitmentContractAddress,
+        mockCommitmentContract.address,
         mockAdjudicationContract.address
       ])
       await expect(depositContract.finalizeCheckpoint(checkpointProperty))
@@ -77,7 +79,7 @@ describe('DepositContract', () => {
     it('fail to finalize checkpoint because checkpoint claim not decided true', async () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
-        commitmentContractAddress,
+        mockCommitmentContract.address,
         mockFailingAdjudicationContract.address
       ])
       await expect(depositContract.finalizeCheckpoint(checkpointProperty))
@@ -107,7 +109,7 @@ describe('DepositContract', () => {
     beforeEach(async () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
-        commitmentContractAddress,
+        mockCommitmentContract.address,
         mockAdjudicationContract.address
       ])
       mockOwnershipPredicate = await deployContract(wallet, MockOwnershipPredicate, [depositContract.address])
@@ -182,7 +184,7 @@ describe('DepositContract', () => {
     beforeEach(async () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address, 
-        commitmentContractAddress,
+        mockCommitmentContract.address,
         mockAdjudicationContract.address
       ])
     })
@@ -198,7 +200,7 @@ describe('DepositContract', () => {
     beforeEach(async () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address, 
-        commitmentContractAddress,
+        mockCommitmentContract.address,
         mockAdjudicationContract.address
       ])
       await depositContract.extendDepositedRanges(500)
