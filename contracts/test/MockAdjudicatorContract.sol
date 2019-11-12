@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import {DataTypes as types} from "./DataTypes.sol";
 
- /**
+/**
  * @title MockAdjudicationContract
  * @notice Mock adjudication contract for writing unit test
  */
