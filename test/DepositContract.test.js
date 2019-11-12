@@ -18,12 +18,12 @@ describe('DepositContract', () => {
   let wallet = wallets[0]
   let mockTokenContract, testPredicate, mockOwnershipPredicate
   // mock adjudicator contracts
-  let mockAdjudicationContract, mockFailinfAdjudicationContract
+  let mockAdjudicationContract, mockFailingAdjudicationContract
   let commitmentContractAddress = ethers.constants.AddressZero
 
   beforeEach(async () => {
     mockAdjudicationContract = await deployContract(wallet, MockAdjudicationContract, [false]);
-    mockFailinfAdjudicationContract = await deployContract(wallet, MockAdjudicationContract, [true]);
+    mockFailingAdjudicationContract = await deployContract(wallet, MockAdjudicationContract, [true]);
     testPredicate = await deployContract(wallet, TestPredicate, [mockAdjudicationContract.address]);
     mockTokenContract = await deployContract(wallet, MockToken, [])
     await mockTokenContract.mint(wallet.address, 100)
@@ -78,7 +78,7 @@ describe('DepositContract', () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         commitmentContractAddress,
-        mockFailinfAdjudicationContract.address
+        mockFailingAdjudicationContract.address
       ])
       await expect(depositContract.finalizeCheckpoint(checkpointProperty))
         .to.be.reverted;
