@@ -38,5 +38,4 @@ library DataTypes {
         Range subrange;
         StateUpdate stateUpdate;
     }
-
 }
