@@ -26,13 +26,17 @@ library DataTypes {
         uint256 end;
     }
     struct StateUpdate {
-        Property property;
+        Property stateObject;
         Range range;
         uint256 plasmaBlockNumber;
         address depositAddress;
     }
     struct Checkpoint {
-        StateUpdate stateUpdate;
         Range subrange;
     }
+    struct Exit {
+        Range subrange;
+        StateUpdate stateUpdate;
+    }
+
 }
