@@ -80,11 +80,23 @@ contract DepositContract {
             "range must be of a depostied range (the one that has not been exited)"
         );
         types.Range storage encompasingRange = depositedRanges[_depositedRangeId];
+        /*
+         * depositedRanges makes O(1) checking existence of certain range.
+         * Since _range is subrange of encompasingRange, we only have to check is each start and end are same or not.
+         * So, there are 2 patterns for each start and end of _range and encompasingRange.
+         * There are nothing todo for _range.start is equal to encompasingRange.start.
+         */
+         // Check start of range
         if (_range.start != encompasingRange.start) {
             types.Range memory leftSplitRange = types.Range({start:encompasingRange.start, end:_range.start});
             depositedRanges[leftSplitRange.end] = leftSplitRange;
         }
+         // Check end of range
         if (_range.end == encompasingRange.end) {
+            /*
+             * Deposited range Id is end value of the range, we must remove the range from depositedRanges
+             *     when range.end is changed.
+             */
             delete depositedRanges[encompasingRange.end];
         } else {
             encompasingRange.start = _range.end;
