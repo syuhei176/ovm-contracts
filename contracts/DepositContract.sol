@@ -40,6 +40,8 @@ contract DepositContract {
     /**
      * @dev deposit ERC20 token to deposit contract with initial state.
      *     following https://docs.plasma.group/projects/spec/en/latest/src/02-contracts/deposit-contract.html#deposit
+     * @param _amount to deposit
+     * @param _initialState The initial state of deposit
      */
     function deposit(uint256 _amount, types.Property memory _initialState) public {
         erc20.transferFrom(msg.sender, address(this), _amount);
@@ -105,6 +107,10 @@ contract DepositContract {
         }
     }
 
+    /**
+     * finalizeCheckpoint
+     * @param _checkpointProperty A property which is instance of checkpoint predicate and its input is range to create checkpoint.
+     */
     function finalizeCheckpoint(types.Property memory _checkpointProperty) public {
         require(universalAdjudicationContract.isDecided(_checkpointProperty), "Checkpointing claim must be decided");
         types.Checkpoint memory checkpoint = deserializeCheckpoint(_checkpointProperty);
@@ -117,8 +123,9 @@ contract DepositContract {
 
     /**
      * finalizeExit
-     * @param _exitProperty Property for exit
+     * @param _exitProperty A property which is instance of exit predicate and its inputs are range and StateUpdate that exiting account wants to withdraw.
      * @param _depositedRangeId Id of deposited range
+     * @dev spec is https://docs.plasma.group/projects/spec/en/latest/src/02-contracts/deposit-contract.html#finalizeexit
      */
     function finalizeExit(types.Property memory _exitProperty, uint256 _depositedRangeId) public {
         types.Exit memory exit = deserializeExit(_exitProperty);
