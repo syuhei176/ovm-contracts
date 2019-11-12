@@ -12,13 +12,13 @@ describe('CommitmentContract', () => {
   let wallets = getWallets(provider);
   let wallet = wallets[0];
   let commitmentContract;
+  const root = ethers.utils.keccak256(ethers.utils.arrayify(ethers.constants.HashZero));
 
   beforeEach(async () => {
     commitmentContract = await deployContract(wallet, CommitmentContract, [wallet.address]);
   });
 
   describe('submitRoot', () => {
-    const root = ethers.utils.keccak256(ethers.utils.arrayify(ethers.constants.HashZero));
     it('succeed to submit root', async () => {
       await expect(commitmentContract.submitRoot(1, root))
         .to.emit(commitmentContract, 'BlockSubmitted')
@@ -31,6 +31,30 @@ describe('CommitmentContract', () => {
     it('fail to submit root because of invalid block number', async () => {
       await expect(commitmentContract.submitRoot(0, root))
         .to.be.reverted;
+    });
+  });
+
+  describe('getCurrentBlock', () => {
+    beforeEach(async () => {
+      await expect(commitmentContract.submitRoot(1, root))
+        .to.emit(commitmentContract, 'BlockSubmitted')
+    });
+  
+    it('suceed to get current block', async () => {
+      const currentBlock = await commitmentContract.currentBlock();
+      expect(currentBlock).to.be.equal(1)
+    });
+  });
+
+  describe('blocks', () => {
+    beforeEach(async () => {
+      await expect(commitmentContract.submitRoot(1, root))
+        .to.emit(commitmentContract, 'BlockSubmitted')
+    });
+  
+    it('suceed to get a block', async () => {
+      const block = await commitmentContract.blocks(1);
+      expect(block).to.be.equal(root)
     });
   });
 });
