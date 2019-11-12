@@ -49,7 +49,7 @@ contract DepositContract {
         types.StateUpdate memory stateUpdate = types.StateUpdate({
             stateObject: _initialState,
             range: depositRange,
-            plasmaBlockNumber: getLatestPlasmaBlockNumber() - 1,
+            blockNumber: getLatestPlasmaBlockNumber() - 1,
             depositAddress: address(this)
         });
         types.Checkpoint memory checkpoint = types.Checkpoint({
@@ -181,15 +181,15 @@ contract DepositContract {
      * @dev deserialize property to StateUpdate instance
      */
     function deserializeStateUpdate(types.Property memory _stateUpdate) private pure returns (types.StateUpdate memory) {
-        types.Property memory stateObject = abi.decode(_stateUpdate.inputs[0], (types.Property));
-        types.Range memory range = abi.decode(_stateUpdate.inputs[1], (types.Range));
-        uint256 plasmaBlockNumber = abi.decode(_stateUpdate.inputs[2], (uint256));
-        address depositAddress = abi.decode(_stateUpdate.inputs[3], (address));
+        uint256 blockNumber = abi.decode(_stateUpdate.inputs[0], (uint256));
+        address depositAddress = abi.decode(_stateUpdate.inputs[1], (address));
+        types.Range memory range = abi.decode(_stateUpdate.inputs[2], (types.Range));
+        types.Property memory stateObject = abi.decode(_stateUpdate.inputs[3], (types.Property));
         return types.StateUpdate({
-            stateObject: stateObject,
+            blockNumber: blockNumber,
+            depositAddress: depositAddress,
             range: range,
-            plasmaBlockNumber: plasmaBlockNumber,
-            depositAddress: depositAddress
+            stateObject: stateObject
         });
     }
 

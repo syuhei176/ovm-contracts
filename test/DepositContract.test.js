@@ -97,10 +97,10 @@ describe('DepositContract', () => {
         inputs: [
           abi.encode(['tuple(uint256, uint256)'], [range]),
           abi.encode(['tuple(address, bytes[])'], [[stateUpdateAddress, [
-            ownershipStateObject,
-            abi.encode(['tuple(uint256, uint256)'], [[0, 10]]),
             abi.encode(['uint256'], [0]),
-            abi.encode(['address'], [depositContractAddress || depositContract.address])
+            abi.encode(['address'], [depositContractAddress || depositContract.address]),
+            abi.encode(['tuple(uint256, uint256)'], [[0, 10]]),
+            ownershipStateObject
           ]]])
         ]
       }
