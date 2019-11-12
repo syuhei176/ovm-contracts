@@ -109,7 +109,7 @@ contract DepositContract {
 
     function finalizeCheckpoint(types.Property memory _checkpointProperty) public {
         require(universalAdjudicationContract.isDecided(_checkpointProperty), "Checkpointing claim must be decided");
-        types.Checkpoint memory checkpoint = getCheckpoint(_checkpointProperty);
+        types.Checkpoint memory checkpoint = deserializeCheckpoint(_checkpointProperty);
         bytes32 checkpointId = getCheckpointId(checkpoint);
         // store the checkpoint
         checkpoints[checkpointId] = checkpoint;
@@ -123,8 +123,8 @@ contract DepositContract {
      * @param _depositedRangeId Id of deposited range
      */
     function finalizeExit(types.Property memory _exitProperty, uint256 _depositedRangeId) public {
-        bytes32 exitId = getExitId(_exitProperty);
-        types.Exit memory exit = getExit(_exitProperty);
+        types.Exit memory exit = deserializeExit(_exitProperty);
+        bytes32 exitId = getExitId(exit);
         // Check that we are authorized to finalize this exit
         require(universalAdjudicationContract.isDecided(_exitProperty), "Exit must be decided after this block");
         require(exit.stateUpdate.stateObject.predicateAddress == msg.sender, "finalizeExit must be called from StateObject contract");
@@ -146,23 +146,36 @@ contract DepositContract {
         return keccak256(abi.encode(_checkpoint));
     }
 
-    function getCheckpoint(types.Property memory _checkpoint) private pure returns (types.Checkpoint memory) {
+    function getExitId(types.Exit memory _exit) private pure returns (bytes32) {
+        return keccak256(abi.encode(_exit));
+    }
+
+    /**
+     * @dev deserialize property to Checkpoint instance
+     */
+    function deserializeCheckpoint(types.Property memory _checkpoint) private pure returns (types.Checkpoint memory) {
         types.Range memory range = abi.decode(_checkpoint.inputs[0], (types.Range));
         return types.Checkpoint({
             subrange: range
         });
     }
 
-    function getExit(types.Property memory _exit) private pure returns (types.Exit memory) {
+    /**
+     * @dev deserialize property to Exit instance
+     */
+    function deserializeExit(types.Property memory _exit) private pure returns (types.Exit memory) {
         types.Range memory range = abi.decode(_exit.inputs[0], (types.Range));
         types.Property memory stateUpdateProperty = abi.decode(_exit.inputs[1], (types.Property));
         return types.Exit({
-            stateUpdate: getStateUpdate(stateUpdateProperty),
+            stateUpdate: deserializeStateUpdate(stateUpdateProperty),
             subrange: range
         });
     }
 
-    function getStateUpdate(types.Property memory _stateUpdate) private pure returns (types.StateUpdate memory) {
+    /**
+     * @dev deserialize property to StateUpdate instance
+     */
+    function deserializeStateUpdate(types.Property memory _stateUpdate) private pure returns (types.StateUpdate memory) {
         types.Property memory stateObject = abi.decode(_stateUpdate.inputs[0], (types.Property));
         types.Range memory range = abi.decode(_stateUpdate.inputs[1], (types.Range));
         uint256 plasmaBlockNumber = abi.decode(_stateUpdate.inputs[2], (uint256));
