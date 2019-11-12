@@ -1,6 +1,6 @@
 const chai = require('chai')
 const {createMockProvider, deployContract, getWallets, solidity} = require('ethereum-waffle')
-const DepositAndExit = require('../build/DepositAndExit')
+const DepositContract = require('../build/DepositContract')
 const MockToken = require('../build/MockToken')
 const MockOwnershipPredicate = require('../build/MockOwnershipPredicate')
 const TestPredicate = require('../build/TestPredicate')
@@ -12,7 +12,7 @@ chai.use(solidity)
 chai.use(require('chai-as-promised'))
 const {expect, assert} = chai
 
-describe('DepositAndExit', () => {
+describe('DepositContract', () => {
   let provider = createMockProvider()
   let wallets = getWallets(provider)
   let wallet = wallets[0]
@@ -33,7 +33,7 @@ describe('DepositAndExit', () => {
     let depositContract
     let stateObject
     beforeEach(async () => {
-      depositContract = await deployContract(wallet, DepositAndExit, [
+      depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address, 
         commitmentContractAddress,
         mockAdjudicationContract.address
@@ -65,7 +65,7 @@ describe('DepositAndExit', () => {
       };
     })
     it('succeed to finalize checkpoint', async () => {
-      depositContract = await deployContract(wallet, DepositAndExit, [
+      depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         commitmentContractAddress,
         mockAdjudicationContract.address
@@ -75,7 +75,7 @@ describe('DepositAndExit', () => {
         .to.emit(depositContract, 'LogCheckpoint')
     })
     it('fail to finalize checkpoint because of checkpoint claim not decided true', async () => {
-      depositContract = await deployContract(wallet, DepositAndExit, [
+      depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         commitmentContractAddress,
         mockFailinfAdjudicationContract.address
@@ -105,7 +105,7 @@ describe('DepositAndExit', () => {
     }
 
     beforeEach(async () => {
-      depositContract = await deployContract(wallet, DepositAndExit, [
+      depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         commitmentContractAddress,
         mockAdjudicationContract.address
@@ -180,7 +180,7 @@ describe('DepositAndExit', () => {
   describe('extendDepositedRanges', () => {
     let depositContract
     beforeEach(async () => {
-      depositContract = await deployContract(wallet, DepositAndExit, [
+      depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address, 
         commitmentContractAddress,
         mockAdjudicationContract.address
@@ -196,7 +196,7 @@ describe('DepositAndExit', () => {
   describe('removeDepositedRange', () => {
     let depositContract
     beforeEach(async () => {
-      depositContract = await deployContract(wallet, DepositAndExit, [
+      depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address, 
         commitmentContractAddress,
         mockAdjudicationContract.address

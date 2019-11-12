@@ -11,7 +11,7 @@ import {DataTypes as types} from "./DataTypes.sol";
 import {CommitmentContract} from "./CommitmentContract.sol";
 import {UniversalAdjudicationContract} from "./UniversalAdjudicationContract.sol";
 
-contract DepositAndExit {
+contract DepositContract {
     /* Events */
     event CheckpointFinalized(
         bytes32 checkpointId

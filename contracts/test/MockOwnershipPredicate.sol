@@ -2,7 +2,7 @@ pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
 import { AtomicPredicate } from "../Predicate/AtomicPredicate.sol";
-import "../DepositAndExit.sol";
+import "../DepositContract.sol";
 
 
 /**
@@ -16,6 +16,6 @@ contract MockOwnershipPredicate is AtomicPredicate {
     function decideTrue(bytes[] calldata _inputs, bytes calldata _witness) external {
     }
     function finalizeExit(types.Property memory _exitProperty, uint256 _depositedRangeId) public {
-        DepositAndExit(depositContractAddress).finalizeExit(_exitProperty, _depositedRangeId);
+        DepositContract(depositContractAddress).finalizeExit(_exitProperty, _depositedRangeId);
     }
 }
