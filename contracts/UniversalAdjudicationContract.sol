@@ -40,7 +40,7 @@ contract UniversalAdjudicationContract {
         // check all _game.challenges should be false
         for (uint256 i = 0;i < game.challenges.length; i++) {
             types.ChallengeGame memory challengingGame = instantiatedGames[game.challenges[i]];
-            require(challengingGame.decision == types.Decision.False, "all _game.challenges should be false");
+            require(challengingGame.decision == types.Decision.False, "all _game.challenges must be false");
         }
         // should check dispute period
         require(game.createdBlock < block.number - DISPUTE_PERIOD, "Dispute period haven't passed yet.");
@@ -74,18 +74,32 @@ contract UniversalAdjudicationContract {
         bytes32 _gameId,
         bytes32 _challengingGameId
     ) public {
+        types.ChallengeGame storage game = instantiatedGames[_gameId];
+        types.ChallengeGame memory challengingGame = instantiatedGames[_challengingGameId];
+        // check _challenge is in _game.challenges
+        bytes32 challengingGameId = utils.getPropertyId(challengingGame.property);
+        int128 challengeIndex = -1;
+        for (uint256 i = 0;i < game.challenges.length; i++) {
+            if(game.challenges[i] == challengingGameId) {
+                challengeIndex = int128(i);
+            }
+        }
+        require(challengeIndex >= 0, "challenge isn't valid");
+        // _game.createdBlock > block.number - dispute
+        // check _challenge have been decided true
+        require(challengingGame.decision == types.Decision.False, "challenging game haven't been decided false.");
+        // remove challenge
+        removeChallengefromArray(game.challenges, uint256(challengeIndex));
     }
 
-    function decideProperty(types.Property memory _property, bool _decision) public {
+    function setPredicateDecision(bytes32 _gameId, bool _decision) public {
+        types.ChallengeGame storage game = instantiatedGames[_gameId];
         // only the prodicate can decide a claim
-        require(msg.sender == _property.predicateAddress, "msg.sender should be predicateAddress");
-        bytes32 decidedPropertyId = utils.getPropertyId(_property);
-
-        // if the decision is true, automatically decide its claim now
+        require(game.property.predicateAddress == msg.sender, "setPredicateDecision must be called from predicate.");
         if (_decision) {
-            instantiatedGames[decidedPropertyId].decision = types.Decision.True; // True
+            game.decision = types.Decision.True;
         } else {
-            instantiatedGames[decidedPropertyId].decision = types.Decision.False; // False
+            game.decision = types.Decision.False;
         }
     }
 
@@ -126,5 +140,14 @@ contract UniversalAdjudicationContract {
 
     function isEmptyClaim(types.ChallengeGame memory _game) internal pure returns (bool) {
         return _game.createdBlock == 0;
+    }
+
+    function removeChallengefromArray(bytes32[] storage challenges, uint256 index) private {
+        require(index < challenges.length, "index must be less than challenges.length");
+        for (uint256 i = index; i < challenges.length - 1; i++){
+            challenges[i] = challenges[i+1];
+        }
+        delete challenges[challenges.length - 1];
+        challenges.length -= 1;
     }
 }

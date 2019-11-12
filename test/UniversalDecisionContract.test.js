@@ -32,8 +32,8 @@ describe('UniversalAdjudicationContract', () => {
 
   beforeEach(async () => {
     adjudicationContract = await deployContract(wallet, UniversalAdjudicationContract, [utils.address]);
-    notPredicate = await deployContract(wallet, NotPredicate, [adjudicationContract.address]);
-    testPredicate = await deployContract(wallet, TestPredicate, [adjudicationContract.address]);
+    notPredicate = await deployContract(wallet, NotPredicate, [adjudicationContract.address, utils.address]);
+    testPredicate = await deployContract(wallet, TestPredicate, [adjudicationContract.address, utils.address]);
     trueProperty = {
       predicateAddress: testPredicate.address,
       inputs: ['0x01']
@@ -98,7 +98,7 @@ describe('UniversalAdjudicationContract', () => {
       const gameId = getGameIdFromProperty(notProperty);
       const challengingGameId = getGameIdFromProperty(trueProperty);
       await adjudicationContract.challenge(gameId, ["0x"], challengingGameId);
-      await testPredicate.decideTrue(['0x01'], '0x');
+      await testPredicate.decideTrue(['0x01']);
       await adjudicationContract.decideClaimToFalse(gameId, challengingGameId);
       const game = await adjudicationContract.getGame(gameId);
       // game should be decided false
@@ -130,6 +130,63 @@ describe('UniversalAdjudicationContract', () => {
       await adjudicationContract.claimProperty(notProperty);
       const gameId = getGameIdFromProperty(notProperty);
       await expect(adjudicationContract.decideClaimToTrue(gameId)).to.be.reverted;
+    });
+  });
+
+  describe('setPredicateDecision', () => {
+    it('decide bool(true) decided true', async () => {
+      await adjudicationContract.claimProperty(trueProperty);
+      const gameId = getGameIdFromProperty(trueProperty);
+      await testPredicate.decideTrue(trueProperty.inputs);
+      const game = await adjudicationContract.getGame(gameId);
+      assert.equal(game.decision, True);
+    });
+    it('decide bool(false) decided false', async () => {
+      await adjudicationContract.claimProperty(falseProperty);
+      const gameId = getGameIdFromProperty(falseProperty);
+      await testPredicate.decideFalse(falseProperty.inputs);
+      const game = await adjudicationContract.getGame(gameId);
+      assert.equal(game.decision, False);
+    });
+    it('fail to call setPredicateDecision directlly', async () => {
+      await adjudicationContract.claimProperty(trueProperty);
+      const gameId = getGameIdFromProperty(trueProperty);
+      await expect(adjudicationContract.setPredicateDecision(gameId, true))
+        .to.be.reverted
+    });
+  });
+
+  describe('removeChallenge', () => {
+    // We can remove "False" challenge from game.
+    it('remove false from not(false)', async () => {
+      await adjudicationContract.claimProperty(notFalseProperty);
+      await adjudicationContract.claimProperty(falseProperty);
+      const gameId = getGameIdFromProperty(notFalseProperty);
+      const challengeGameId = getGameIdFromProperty(falseProperty);
+      await adjudicationContract.challenge(gameId, ["0x"], challengeGameId);
+      await testPredicate.decideFalse(falseProperty.inputs);
+      await adjudicationContract.removeChallenge(gameId, challengeGameId);
+      const game = await adjudicationContract.getGame(gameId);
+      assert.equal(game.challenges.length, 0);
+    });
+    it('fail to remove undecided challenge', async () => {
+      await adjudicationContract.claimProperty(notFalseProperty);
+      await adjudicationContract.claimProperty(falseProperty);
+      const gameId = getGameIdFromProperty(notFalseProperty);
+      const challengeGameId = getGameIdFromProperty(falseProperty);
+      await adjudicationContract.challenge(gameId, ["0x"], challengeGameId);
+      await expect(adjudicationContract.removeChallenge(gameId, challengeGameId))
+        .to.be.reverted
+    });
+    it('fail to remove true from not(true)', async () => {
+      await adjudicationContract.claimProperty(notProperty);
+      await adjudicationContract.claimProperty(trueProperty);
+      const gameId = getGameIdFromProperty(notProperty);
+      const challengeGameId = getGameIdFromProperty(trueProperty);
+      await adjudicationContract.challenge(gameId, ["0x"], challengeGameId);
+      await testPredicate.decideTrue(trueProperty.inputs);
+      await expect(adjudicationContract.removeChallenge(gameId, challengeGameId))
+        .to.be.reverted
     });
   });
 });

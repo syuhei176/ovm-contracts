@@ -28,9 +28,9 @@ describe('AndPredicate', () => {
 
   beforeEach(async () => {
     adjudicationContract = await deployContract(wallet, UniversalAdjudicationContract, [utils.address]);
-    notPredicate = await deployContract(wallet, NotPredicate, [adjudicationContract.address]);
-    andPredicate = await deployContract(wallet, AndPredicate, [adjudicationContract.address, notPredicate.address]);
-    testPredicate = await deployContract(wallet, TestPredicate, [adjudicationContract.address]);
+    notPredicate = await deployContract(wallet, NotPredicate, [adjudicationContract.address, utils.address]);
+    andPredicate = await deployContract(wallet, AndPredicate, [adjudicationContract.address, notPredicate.address, utils.address]);
+    testPredicate = await deployContract(wallet, TestPredicate, [adjudicationContract.address, utils.address]);
     trueProperty = {
       predicateAddress: testPredicate.address,
       inputs: ['0x01']
