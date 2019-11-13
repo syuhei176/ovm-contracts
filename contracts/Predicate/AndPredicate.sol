@@ -4,14 +4,17 @@ pragma experimental ABIEncoderV2;
 import {DataTypes as types} from "../DataTypes.sol";
 import "./LogicalConnective.sol";
 import {UniversalAdjudicationContract} from "../UniversalAdjudicationContract.sol";
+import "../Utils.sol";
 
 contract AndPredicate is LogicalConnective {
     address uacAddress;
     address notPredicateAddress;
+    Utils utils;
 
-    constructor(address _uacAddress, address _notPredicateAddress) public {
+    constructor(address _uacAddress, address _notPredicateAddress, address utilsAddress) public {
         uacAddress = _uacAddress;
         notPredicateAddress = _notPredicateAddress;
+        utils = Utils(utilsAddress);
     }
 
     struct TestPredicateInput {
@@ -43,7 +46,7 @@ contract AndPredicate is LogicalConnective {
     /**
      * @dev Can decide true when all child properties are decided true
      */
-    function decideTrue(types.Property[] memory innerProperties, bytes memory _witness) public {
+    function decideTrue(types.Property[] memory innerProperties) public {
         for (uint i = 0;i < innerProperties.length;i++) {
             require(
                 UniversalAdjudicationContract(uacAddress).isDecided(innerProperties[i]),
@@ -55,7 +58,7 @@ contract AndPredicate is LogicalConnective {
             inputs[i] = abi.encode(innerProperties[i]);
         }
         types.Property memory property = createPropertyFromInput(inputs);
-        UniversalAdjudicationContract(uacAddress).decideProperty(property, true);
+        UniversalAdjudicationContract(uacAddress).setPredicateDecision(utils.getPropertyId(property), true);
 
         emit ValueDecided(true, property);
     }
