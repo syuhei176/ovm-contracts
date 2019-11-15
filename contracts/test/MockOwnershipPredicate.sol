@@ -13,7 +13,7 @@ contract MockOwnershipPredicate is AtomicPredicate {
     constructor(address _depositContractAddress) public {
         depositContractAddress = _depositContractAddress;
     }
-    function decideTrue(bytes[] calldata _inputs, bytes calldata _witness) external {
+    function decideTrue(bytes[] calldata _inputs) external {
     }
     function finalizeExit(types.Property memory _exitProperty, uint256 _depositedRangeId) public {
         DepositContract(depositContractAddress).finalizeExit(_exitProperty, _depositedRangeId);
