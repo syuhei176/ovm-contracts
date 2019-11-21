@@ -5,16 +5,24 @@ import {DataTypes as types} from "../DataTypes.sol";
 import "./AtomicPredicate.sol";
 import "./LogicalConnective.sol";
 import {UniversalAdjudicationContract} from "../UniversalAdjudicationContract.sol";
+import "../Utils.sol";
 
 contract ForAllSuchThatQuantifier is LogicalConnective {
     address uacAddress;
     address notPredicateAddress;
     address andPredicateAddress;
+    Utils utils;
 
-    constructor(address _uacAddress, address _notPredicateAddress, address _andPredicateAddress) public {
+    constructor(
+        address _uacAddress,
+        address _notPredicateAddress,
+        address _andPredicateAddress,
+        address _utilsAddress
+    ) public {
         uacAddress = _uacAddress;
         notPredicateAddress = _notPredicateAddress;
         andPredicateAddress = _andPredicateAddress;
+        utils = Utils(_utilsAddress);
     }
 
     /**
@@ -53,29 +61,13 @@ contract ForAllSuchThatQuantifier is LogicalConnective {
             }
         } else {
             for (uint i = 0;i < property.inputs.length;i++) {
-                if(isPlaceholder(property.inputs[i])) {
-                    if(keccak256(getPlaceholderName(property.inputs[i])) == keccak256(placeholder)) {
+                if(utils.isPlaceholder(property.inputs[i])) {
+                    if(keccak256(utils.getPlaceholderName(property.inputs[i])) == keccak256(placeholder)) {
                         property.inputs[i] = quantified;
                     }
                 }
             }
         }
         return abi.encode(property);
-    }
-
-    function isPlaceholder(bytes memory target) private pure returns (bool) {
-        return keccak256(subBytes(target, 0, 12)) == keccak256(bytes("__VARIABLE__"));
-    }
-
-    function getPlaceholderName(bytes memory target) private pure returns (bytes memory) {
-        return subBytes(target, 12, target.length);
-    }
-
-    function subBytes(bytes memory target, uint startIndex, uint endIndex) private pure returns (bytes memory) {
-        bytes memory result = new bytes(endIndex - startIndex);
-        for(uint i = startIndex; i < endIndex; i++) {
-            result[i - startIndex] = target[i];
-        }
-        return result;
     }
 }

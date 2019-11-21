@@ -52,7 +52,12 @@ describe('ForAllSuchThatQuantifier', () => {
     forAllSuchThatQuantifier = await deployContract(
       wallet,
       ForAllSuchThatQuantifier,
-      [adjudicationContract.address, notPredicate.address, andPredicate.address]
+      [
+        adjudicationContract.address,
+        notPredicate.address,
+        andPredicate.address,
+        utils.address
+      ]
     )
     testPredicate = await deployContract(wallet, TestPredicate, [
       adjudicationContract.address,
