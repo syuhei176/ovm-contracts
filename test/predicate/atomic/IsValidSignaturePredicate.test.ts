@@ -3,10 +3,12 @@ import {
   createMockProvider,
   deployContract,
   getWallets,
-  solidity
+  solidity,
+  link
 } from 'ethereum-waffle'
 import * as MockAdjudicationContract from '../../../build/MockAdjudicationContract.json'
 import * as Utils from '../../../build/Utils.json'
+import * as ECRecover from '../../../build/ECRecover.json'
 import * as IsValidSignaturePredicate from '../../../build/IsValidSignaturePredicate.json'
 import * as ethers from 'ethers'
 import { hexlify, toUtf8Bytes } from 'ethers/utils'
@@ -19,12 +21,21 @@ describe('IsValidSignaturePredicate', () => {
   let provider = createMockProvider()
   let wallets = getWallets(provider)
   let wallet = wallets[0]
-  let utils
   let isValidSignaturePredicate: ethers.Contract
   let adjudicationContract: ethers.Contract
 
   beforeEach(async () => {
-    utils = await deployContract(wallet, Utils, [])
+    const ecRecover = await deployContract(wallet, ECRecover, [])
+    try {
+      link(
+        IsValidSignaturePredicate,
+        'contracts/Library/ECRecover.sol:ECRecover',
+        ecRecover.address
+      )
+    } catch (e) {
+      // link fail in second time.
+    }
+    const utils = await deployContract(wallet, Utils, [])
     adjudicationContract = await deployContract(
       wallet,
       MockAdjudicationContract,
