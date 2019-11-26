@@ -38,4 +38,29 @@ library DataTypes {
         Range subrange;
         StateUpdate stateUpdate;
     }
+
+    struct InclusionProof {
+        IntervalInclusionProof intervalInclusionProof;
+        AddressInclusionProof addressInclusionProof;
+    }
+
+    struct IntervalInclusionProof {
+        uint256 leafPosition;
+        IntervalTreeNode[] siblings;
+    }
+
+    struct AddressInclusionProof {
+        uint256 leafPosition;
+        AddressTreeNode[] siblings;
+    }
+
+    struct IntervalTreeNode {
+        bytes32 data;
+        uint256 start;
+    }
+
+    struct AddressTreeNode {
+        bytes32 data;
+        address tokenAddress;
+    }
 }
