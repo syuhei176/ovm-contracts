@@ -106,7 +106,19 @@ describe('CommitmentContract', () => {
       expect(result).to.be.true
     })
 
-    it('fail to verify inclusion', async () => {
+    it('fail to verify inclusion because of invalid range', async () => {
+      await expect(
+        commitmentContract.verifyInclusion(
+          leaf0.data,
+          tokenAddress,
+          { start: 10, end: 20 },
+          validInclusionProof,
+          blockNumber
+        )
+      ).to.be.revertedWith('_leftStart must be less than _rightStart')
+    })
+
+    it('fail to verify inclusion because of invalid hash data', async () => {
       const result = await commitmentContract.verifyInclusion(
         leaf1.data,
         tokenAddress,
@@ -154,7 +166,7 @@ describe('CommitmentContract', () => {
           invalidInclusionProof,
           blockNumber
         )
-      ).to.be.reverted
+      ).to.be.revertedWith('_leftStart must be less than _rightStart')
     })
 
     it('fail to verify inclusion because of left.start is not less than right.start', async () => {
@@ -193,7 +205,7 @@ describe('CommitmentContract', () => {
           invalidInclusionProof,
           blockNumber
         )
-      ).to.be.reverted
+      ).to.be.revertedWith('_leftStart must be less than _rightStart')
     })
   })
 
