@@ -41,7 +41,16 @@ contract CommitmentContract{
         emit BlockSubmitted(blkNumber, _root);
     }
 
-    // Predicate checks this
+    /**
+     * verifyInclusion method verifies inclusion of message in Double Layer Tree.
+     *     The message has range and token address and these also must be verified.
+     *     Please see https://docs.plasma.group/projects/spec/en/latest/src/01-core/double-layer-tree.html for further details.
+     * @param _leaf a message to verify its inclusion
+     * @param _tokenAddress token address of the message
+     * @param _range range of the message
+     * @param _inclusionProof The proof data to verify inclusion
+     * @param _blkNumber block number where the Merkle root is stored
+     */
     function verifyInclusion(
         bytes32 _leaf,
         address _tokenAddress,
@@ -49,12 +58,14 @@ contract CommitmentContract{
         types.InclusionProof memory _inclusionProof,
         uint256 _blkNumber
     ) public view returns (bool) {
+        // Calcurate the root of interval tree
         bytes32 computedRoot = computeIntervalTreeRoot(
             _leaf,
             _range.start,
             _inclusionProof.intervalInclusionProof.leafPosition,
             _inclusionProof.intervalInclusionProof.siblings
         );
+        // Calcurate the root of address tree
         computedRoot = computeAddressTreeRoot(
             computedRoot,
             _tokenAddress,
@@ -64,6 +75,10 @@ contract CommitmentContract{
         return computedRoot == blocks[_blkNumber];
     }
 
+    /**
+     * @dev computeIntervalTreeRoot method calculates the root of Interval Tree.
+     *     Please see https://docs.plasma.group/projects/spec/en/latest/src/01-core/merkle-interval-tree.html for further details.
+     */
     function computeIntervalTreeRoot(
         bytes32 computedRoot,
         uint256 computedStart,
@@ -79,7 +94,7 @@ contract CommitmentContract{
             } else {
                 computedRoot = getParent(computedRoot, computedStart, sibling, siblingStart);
                 computedStart = siblingStart;
-                // require(computedStart >= firstRightStart)
+                // TODO: require(computedStart >= firstRightStart)
             }
         }
         return computedRoot;
@@ -90,6 +105,11 @@ contract CommitmentContract{
         return keccak256(abi.encodePacked(_left, _leftStart, _right, _rightStart));
     }
 
+    /**
+     * @dev computeAddressTreeRoot method calculates the root of Address Tree.
+     *     Address Tree is almost the same as Merkle Tree.
+     *     But leaf has their address and we can verify the address each leaf belongs to.
+     */
     function computeAddressTreeRoot(
         bytes32 computedRoot,
         address computeAddress,
