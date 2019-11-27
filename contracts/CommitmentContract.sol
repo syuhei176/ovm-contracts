@@ -59,12 +59,13 @@ contract CommitmentContract{
         uint256 _blkNumber
     ) public view returns (bool) {
         // Calcurate the root of interval tree
-        bytes32 computedRoot = computeIntervalTreeRoot(
+        (bytes32 computedRoot, uint256 implicitEnd) = computeIntervalTreeRoot(
             _leaf,
             _range.start,
             _inclusionProof.intervalInclusionProof.leafPosition,
             _inclusionProof.intervalInclusionProof.siblings
         );
+        require(_range.end <= implicitEnd, "required range must not exceed the implicit end");
         // Calcurate the root of address tree
         computedRoot = computeAddressTreeRoot(
             computedRoot,
@@ -84,7 +85,9 @@ contract CommitmentContract{
         uint256 computedStart,
         uint256 intervalTreeMerklePath,
         types.IntervalTreeNode[] memory intervalTreeProof
-    ) private pure returns(bytes32) {
+    ) private pure returns(bytes32, uint256) {
+        uint256 firstRightSiblingStart = 2**256 - 1;
+        bool isfirstRightSiblingStartSet = false;
         for(uint256 i = 0;i < intervalTreeProof.length;i += 1) {
             bytes32 sibling = intervalTreeProof[i].data;
             uint256 siblingStart = intervalTreeProof[i].start;
@@ -92,12 +95,16 @@ contract CommitmentContract{
             if(isComputedRightSibling == 1) {
                 computedRoot = getParent(sibling, siblingStart, computedRoot, computedStart);
             } else {
+                if(!isfirstRightSiblingStartSet) {
+                    firstRightSiblingStart = siblingStart;
+                    isfirstRightSiblingStartSet = true;
+                }
+                require(firstRightSiblingStart <= siblingStart, "firstRightSiblingStart must be greater than siblingStart");
                 computedRoot = getParent(computedRoot, computedStart, sibling, siblingStart);
                 computedStart = siblingStart;
-                // TODO: require(computedStart >= firstRightStart)
             }
         }
-        return computedRoot;
+        return (computedRoot, firstRightSiblingStart);
     }
 
     function getParent(bytes32 _left, uint256 _leftStart, bytes32 _right, uint256 _rightStart) private pure returns(bytes32) {
