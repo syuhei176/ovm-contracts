@@ -61,11 +61,14 @@ contract CommitmentContract{
         // Calcurate the root of interval tree
         (bytes32 computedRoot, uint256 implicitEnd) = computeIntervalTreeRoot(
             _leaf,
-            _range.start,
+            _inclusionProof.intervalInclusionProof.leafStart,
             _inclusionProof.intervalInclusionProof.leafPosition,
             _inclusionProof.intervalInclusionProof.siblings
         );
-        require(_range.end <= implicitEnd, "required range must not exceed the implicit end");
+        require(
+            _range.start >= _inclusionProof.intervalInclusionProof.leafStart && _range.end <= implicitEnd,
+            "required range must not exceed the implicit range"
+        );
         // Calcurate the root of address tree
         computedRoot = computeAddressTreeRoot(
             computedRoot,

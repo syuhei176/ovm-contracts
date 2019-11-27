@@ -46,6 +46,7 @@ library DataTypes {
 
     struct IntervalInclusionProof {
         uint256 leafPosition;
+        uint256 leafStart;
         IntervalTreeNode[] siblings;
     }
 

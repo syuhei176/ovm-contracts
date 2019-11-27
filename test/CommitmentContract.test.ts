@@ -95,6 +95,7 @@ describe('CommitmentContract', () => {
       },
       intervalInclusionProof: {
         leafPosition: 0,
+        leafStart: 0,
         siblings: [
           {
             start: 7,
@@ -140,6 +141,7 @@ describe('CommitmentContract', () => {
         },
         intervalInclusionProof: {
           leafPosition: 1,
+          leafStart: 7,
           siblings: [
             {
               start: 0,
@@ -179,6 +181,7 @@ describe('CommitmentContract', () => {
         },
         intervalInclusionProof: {
           leafPosition: 2,
+          leafStart: 15,
           siblings: [
             {
               start: 5000,
@@ -218,6 +221,7 @@ describe('CommitmentContract', () => {
         },
         intervalInclusionProof: {
           leafPosition: 3,
+          leafStart: 5000,
           siblings: [
             {
               start: 15,
@@ -251,7 +255,7 @@ describe('CommitmentContract', () => {
           validInclusionProof,
           blockNumber
         )
-      ).to.be.revertedWith('_leftStart must be less than _rightStart')
+      ).to.be.revertedWith('required range must not exceed the implicit range')
     })
 
     it('fail to verify inclusion because of end exceeded', async () => {
@@ -263,7 +267,7 @@ describe('CommitmentContract', () => {
           validInclusionProof,
           blockNumber
         )
-      ).to.be.revertedWith('required range must not exceed the implicit end')
+      ).to.be.revertedWith('required range must not exceed the implicit range')
     })
 
     it('fail to verify inclusion because of invalid hash data', async () => {
@@ -291,6 +295,7 @@ describe('CommitmentContract', () => {
         },
         intervalInclusionProof: {
           leafPosition: 0,
+          leafStart: 0,
           siblings: [
             {
               start: 7,
@@ -332,7 +337,8 @@ describe('CommitmentContract', () => {
           ]
         },
         intervalInclusionProof: {
-          leafPosition: 0,
+          leafPosition: 1,
+          leafStart: 7,
           siblings: [
             {
               start: 0,
