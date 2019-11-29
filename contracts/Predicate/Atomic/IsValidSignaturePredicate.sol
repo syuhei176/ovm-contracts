@@ -15,15 +15,7 @@ contract IsValidSignaturePredicate is AtomicPredicate {
         uacAddress = _uacAddress;
         utils = Utils(_utilsAddress);
     }
-
-    function createPropertyFromInput(bytes[] memory _inputs) public view returns (types.Property memory) {
-        types.Property memory property = types.Property({
-            predicateAddress: address(this),
-            inputs: _inputs
-        });
-        return property;
-    }
-
+    
     function decideTrue(bytes[] memory _inputs) public {
         require(keccak256(abi.encodePacked(string(_inputs[3]))) == keccak256("secp256k1"), "verifierType must be secp256k1");
         require(ECRecover.ecverify(
@@ -32,7 +24,10 @@ contract IsValidSignaturePredicate is AtomicPredicate {
             utils.bytesToAddress(_inputs[2])
         ), "This property is not true");
 
-        types.Property memory property = createPropertyFromInput(_inputs);
+        types.Property memory property = types.Property({
+            predicateAddress: address(this),
+            inputs: _inputs
+        });
         UniversalAdjudicationContract(uacAddress).setPredicateDecision(utils.getPropertyId(property), true);
     }
 }
