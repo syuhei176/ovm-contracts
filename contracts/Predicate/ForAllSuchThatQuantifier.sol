@@ -50,6 +50,12 @@ contract ForAllSuchThatQuantifier is LogicalConnective {
      * @dev Replace placeholder by quantified in propertyBytes
      */
     function replaceVariable(bytes memory propertyBytes, bytes memory placeholder, bytes memory quantified) private view returns(bytes memory) {
+        // Support property as the variable in ForAllSuchThatQuantifier.
+        if(utils.isPlaceholder(propertyBytes)) {
+            if(keccak256(utils.getPlaceholderName(propertyBytes)) == keccak256(placeholder)) {
+                return quantified;
+            }
+        }
         types.Property memory property = abi.decode(propertyBytes, (types.Property));
         if(property.predicateAddress == notPredicateAddress) {
             property.inputs[0] = replaceVariable(property.inputs[0], placeholder, quantified);

@@ -33,6 +33,10 @@ describe('ForAllSuchThatQuantifier', () => {
     notTrueProperty: OvmProperty,
     forAllSuchThatProperty: OvmProperty
 
+  const createPlaceholder = (name: string) => {
+    return ethers.utils.hexlify(ethers.utils.toUtf8Bytes(name))
+  }
+
   beforeEach(async () => {
     utils = await deployContract(wallet, Utils, [])
     adjudicationContract = await deployContract(
@@ -80,7 +84,7 @@ describe('ForAllSuchThatQuantifier', () => {
       predicateAddress: forAllSuchThatQuantifier.address,
       inputs: [
         abi.encode(['tuple(address, bytes[])'], [[testPredicate.address, []]]),
-        ethers.utils.hexlify(ethers.utils.toUtf8Bytes('n')),
+        createPlaceholder('n'),
         abi.encode(
           ['tuple(address, bytes[])'],
           [[testPredicate.address, [FreeVariable.from('n').toHexString()]]]
@@ -117,6 +121,34 @@ describe('ForAllSuchThatQuantifier', () => {
           challengingGameId
         )
       ).to.be.reverted
+    })
+  })
+
+  describe('set property as variable', () => {
+    it('for all property such that: property()', async () => {
+      const challengeInput = abi.encode(
+        ['tuple(address, bytes[])'],
+        [[testPredicate.address, ['0x01']]]
+      )
+      const forAllSuchThatProperty = {
+        predicateAddress: forAllSuchThatQuantifier.address,
+        inputs: [
+          '0x',
+          createPlaceholder('n'),
+          FreeVariable.from('n').toHexString()
+        ]
+      }
+      await adjudicationContract.claimProperty(forAllSuchThatProperty)
+      await adjudicationContract.claimProperty(notTrueProperty)
+      const gameId = getGameIdFromProperty(forAllSuchThatProperty)
+      const challengingGameId = getGameIdFromProperty(notTrueProperty)
+      await adjudicationContract.challenge(
+        gameId,
+        [challengeInput],
+        challengingGameId
+      )
+      const game = await adjudicationContract.getGame(gameId)
+      assert.equal(game.challenges.length, 1)
     })
   })
 })
