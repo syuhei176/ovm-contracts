@@ -51,6 +51,8 @@ contract ForAllSuchThatQuantifier is LogicalConnective {
      */
     function replaceVariable(bytes memory propertyBytes, bytes memory placeholder, bytes memory quantified) private view returns(bytes memory) {
         // Support property as the variable in ForAllSuchThatQuantifier.
+        // This code enables meta operation which we were calling eval without adding specific "eval" contract.
+        // For instance, we can write a property like `∀su ∈ SU: su()`.
         if(utils.isPlaceholder(propertyBytes)) {
             if(keccak256(utils.getPlaceholderName(propertyBytes)) == keccak256(placeholder)) {
                 return quantified;
