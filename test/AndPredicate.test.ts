@@ -4,17 +4,17 @@ import {
   createMockProvider,
   deployContract,
   getWallets,
-  solidity,
-  link
+  solidity
 } from 'ethereum-waffle'
-import * as UniversalAdjudicationContract from '../build/UniversalAdjudicationContract.json'
+import * as MockAdjudicationContract from '../build/MockAdjudicationContract.json'
+import * as MockChallenge from '../build/MockChallenge.json'
 import * as Utils from '../build/Utils.json'
 import * as AndPredicate from '../build/AndPredicate.json'
 import * as NotPredicate from '../build/NotPredicate.json'
 import * as TestPredicate from '../build/TestPredicate.json'
 import * as ethers from 'ethers'
 const abi = new ethers.utils.AbiCoder()
-import { getGameIdFromProperty, OvmProperty } from './helpers/getGameId'
+import { OvmProperty } from './helpers/getGameId'
 
 chai.use(solidity)
 chai.use(require('chai-as-promised'))
@@ -26,6 +26,7 @@ describe('AndPredicate', () => {
   let wallet = wallets[0]
   let utils
   let testPredicate, andPredicate, notPredicate
+  let mockChallenge: ethers.Contract
   let adjudicationContract: any
   let trueProperty: OvmProperty,
     andProperty: OvmProperty,
@@ -33,10 +34,11 @@ describe('AndPredicate', () => {
     notFalseProperty: OvmProperty
 
   beforeEach(async () => {
+    mockChallenge = await deployContract(wallet, MockChallenge, [])
     utils = await deployContract(wallet, Utils, [])
     adjudicationContract = await deployContract(
       wallet,
-      UniversalAdjudicationContract,
+      MockAdjudicationContract,
       [utils.address]
     )
     notPredicate = await deployContract(wallet, NotPredicate, [
@@ -86,43 +88,29 @@ describe('AndPredicate', () => {
   describe('isValidChallenge', () => {
     it('suceed to challenge and(t, f) with not(t)', async () => {
       const challengeInput = abi.encode(['uint256'], [0])
-      await adjudicationContract.claimProperty(andProperty)
-      await adjudicationContract.claimProperty(notTrueProperty)
-      const gameId = getGameIdFromProperty(andProperty)
-      const challengingGameId = getGameIdFromProperty(notTrueProperty)
-      await adjudicationContract.challenge(
-        gameId,
-        [challengeInput],
-        challengingGameId
+      const result = await mockChallenge.isValidChallenge(
+        andProperty,
+        challengeInput,
+        notTrueProperty
       )
-      const game = await adjudicationContract.getGame(gameId)
-      assert.equal(game.challenges.length, 1)
+      assert.isTrue(result)
     })
     it('suceed to challenge and(t, f) with not(f)', async () => {
       const challengeInput = abi.encode(['uint256'], [1])
-      await adjudicationContract.claimProperty(andProperty)
-      await adjudicationContract.claimProperty(notFalseProperty)
-      const gameId = getGameIdFromProperty(andProperty)
-      const challengingGameId = getGameIdFromProperty(notFalseProperty)
-      await adjudicationContract.challenge(
-        gameId,
-        [challengeInput],
-        challengingGameId
+      const result = await mockChallenge.isValidChallenge(
+        andProperty,
+        challengeInput,
+        notFalseProperty
       )
-      const game = await adjudicationContract.getGame(gameId)
-      assert.equal(game.challenges.length, 1)
+      assert.isTrue(result)
     })
     it('fail to challenge and(t, f) with t', async () => {
       const challengeInput = abi.encode(['uint256'], [1])
-      await adjudicationContract.claimProperty(andProperty)
-      await adjudicationContract.claimProperty(trueProperty)
-      const gameId = getGameIdFromProperty(andProperty)
-      const challengingGameId = getGameIdFromProperty(trueProperty)
       await expect(
-        adjudicationContract.challenge(
-          gameId,
-          [challengeInput],
-          challengingGameId
+        mockChallenge.isValidChallenge(
+          andProperty,
+          challengeInput,
+          trueProperty
         )
       ).to.be.reverted
     })

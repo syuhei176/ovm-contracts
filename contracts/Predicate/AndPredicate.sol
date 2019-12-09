@@ -34,7 +34,11 @@ contract AndPredicate is LogicalConnective {
     /**
      * @dev Validates a child node of And property in game tree.
      */
-    function isValidChallenge(bytes[] calldata _inputs, bytes calldata _challengeInput, types.Property calldata _challnge) external returns (bool) {
+    function isValidChallenge(
+        bytes[] calldata _inputs,
+        bytes calldata _challengeInput,
+        types.Property calldata _challnge
+    ) external view returns (bool) {
         // challengeInput is index of child property
         uint256 index = abi.decode(_challengeInput, (uint256));
         // challenge should be not(p[index])
