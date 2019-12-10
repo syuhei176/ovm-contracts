@@ -1,0 +1,110 @@
+import chai from 'chai'
+import {
+  createMockProvider,
+  deployContract,
+  getWallets,
+  solidity
+} from 'ethereum-waffle'
+import * as MockAdjudicationContract from '../../../build/MockAdjudicationContract.json'
+import * as MockCommitmentContract from '../../../build/MockCommitmentContract.json'
+import * as Utils from '../../../build/Utils.json'
+import * as VerifyInclusionPredicate from '../../../build/VerifyInclusionPredicate.json'
+import * as ethers from 'ethers'
+const abi = new ethers.utils.AbiCoder()
+
+chai.use(solidity)
+chai.use(require('chai-as-promised'))
+const { expect } = chai
+
+describe('VerifyInclusionPredicate', () => {
+  let provider = createMockProvider()
+  let wallets = getWallets(provider)
+  let wallet = wallets[0]
+  let verifyInclusionPredicate: ethers.Contract
+  let adjudicationContract: ethers.Contract
+  let mockCommitmentContract: ethers.Contract
+
+  beforeEach(async () => {
+    const utils = await deployContract(wallet, Utils, [])
+    mockCommitmentContract = await deployContract(
+      wallet,
+      MockCommitmentContract,
+      []
+    )
+    adjudicationContract = await deployContract(
+      wallet,
+      MockAdjudicationContract,
+      [utils.address]
+    )
+    verifyInclusionPredicate = await deployContract(
+      wallet,
+      VerifyInclusionPredicate,
+      [
+        adjudicationContract.address,
+        utils.address,
+        mockCommitmentContract.address
+      ]
+    )
+  })
+
+  describe('decide', () => {
+    const leaf = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('leaf'))
+    const token = ethers.constants.AddressZero
+    const range = abi.encode(['tuple(uint256, uint256)'], [[100, 200]])
+    const inclusionProof = abi.encode(
+      [
+        'tuple(tuple(uint256, tuple(address, bytes32)[]), tuple(uint256, uint256, tuple(uint256, bytes32)[]))'
+      ],
+      [
+        [
+          [
+            0,
+            [
+              [
+                '0x0000000000000000000000000000000000000001',
+                '0xdd779be20b84ced84b7cbbdc8dc98d901ecd198642313d35d32775d75d916d3a'
+              ]
+            ]
+          ],
+          [
+            0,
+            0,
+            [
+              [
+                7,
+                '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
+              ],
+              [
+                5000,
+                '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+              ]
+            ]
+          ]
+        ]
+      ]
+    )
+    const blockNumber = abi.encode(['uint256'], [120])
+
+    it('suceed to decide', async () => {
+      await verifyInclusionPredicate.decide([
+        leaf,
+        token,
+        range,
+        inclusionProof,
+        blockNumber
+      ])
+    })
+
+    it('fail to decide with invalid abi', async () => {
+      await expect(
+        verifyInclusionPredicate.decide([
+          leaf,
+          token,
+          leaf,
+          inclusionProof,
+          blockNumber
+        ])
+      ).to.be.reverted
+    })
+  })
+})
