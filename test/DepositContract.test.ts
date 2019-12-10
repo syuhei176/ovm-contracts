@@ -87,11 +87,20 @@ describe('DepositContract', () => {
     let depositContract
     let checkpointProperty: OvmProperty
     beforeEach(async () => {
+      const stateObject = abi.encode(
+        ['tuple(address, bytes[])'],
+        [[testPredicate.address, ['0x01']]]
+      )
+
       checkpointProperty = {
         predicateAddress: testPredicate.address,
-        inputs: [abi.encode(['tuple(uint256, uint256)'], [[0, 10]])]
+        inputs: [
+          abi.encode(['tuple(uint256, uint256)'], [[0, 10]]),
+          stateObject
+        ]
       }
     })
+
     it('succeed to finalize checkpoint', async () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,

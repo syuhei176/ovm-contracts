@@ -111,7 +111,19 @@ contract DepositContract {
      */
     function finalizeCheckpoint(types.Property memory _checkpointProperty) public {
         require(universalAdjudicationContract.isDecided(_checkpointProperty), "Checkpointing claim must be decided");
-        types.Checkpoint memory checkpoint = createCheckpoint(_checkpointProperty);
+        // types.Checkpoint memory checkpoint = createCheckpoint(_checkpointProperty);
+        types.Range memory range = abi.decode(_checkpointProperty.inputs[0], (types.Range));
+        types.Property memory property = abi.decode(_checkpointProperty.inputs[1], (types.Property));
+        types.Checkpoint memory checkpoint = types.Checkpoint({
+            subrange: range,
+            stateUpdate: types.StateUpdate({
+                stateObject: property,
+                range: range,
+                blockNumber: getLatestPlasmaBlockNumber() - 1,
+                depositAddress: address(this)
+            })
+        });
+
         bytes32 checkpointId = getCheckpointId(checkpoint);
         // store the checkpoint
         checkpoints[checkpointId] = checkpoint;
