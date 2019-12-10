@@ -31,6 +31,7 @@ describe('DepositContract', () => {
   let mockAdjudicationContract: ethers.Contract,
     mockFailingAdjudicationContract: ethers.Contract
   let mockCommitmentContract: ethers.Contract
+  let mockStateUpdatePredicateContract: ethers.Contract
 
   beforeEach(async () => {
     const utils = await deployContract(wallet, Utils, [])
@@ -53,6 +54,11 @@ describe('DepositContract', () => {
       mockAdjudicationContract.address,
       utils.address
     ])
+    mockStateUpdatePredicateContract = await deployContract(
+      wallet,
+      TestPredicate,
+      [mockAdjudicationContract.address, utils.address]
+    )
     mockTokenContract = await deployContract(wallet, MockToken, [])
     await mockTokenContract.mint(wallet.address, 100)
   })
@@ -64,7 +70,8 @@ describe('DepositContract', () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         mockCommitmentContract.address,
-        mockAdjudicationContract.address
+        mockAdjudicationContract.address,
+        mockStateUpdatePredicateContract.address
       ])
       stateObject = {
         predicateAddress: testPredicate.address,
@@ -73,9 +80,10 @@ describe('DepositContract', () => {
     })
     it('succeed to deposit 1 MockToken', async () => {
       await mockTokenContract.approve(depositContract.address, 10)
-      await expect(depositContract.deposit(1, stateObject))
-        .to.emit(depositContract, 'CheckpointFinalized')
-        .to.emit(depositContract, 'LogCheckpoint')
+      await expect(depositContract.deposit(1, stateObject)).to.emit(
+        depositContract,
+        'CheckpointFinalized'
+      )
     })
     it('fail to deposit 1 MockToken because of not approved', async () => {
       await expect(depositContract.deposit(1, stateObject)).to.be.reverted
@@ -86,26 +94,37 @@ describe('DepositContract', () => {
     let depositContract
     let checkpointProperty: OvmProperty
     beforeEach(async () => {
+      const stateObject = abi.encode(
+        ['tuple(address, bytes[])'],
+        [[testPredicate.address, ['0x01']]]
+      )
+
       checkpointProperty = {
         predicateAddress: testPredicate.address,
-        inputs: [abi.encode(['tuple(uint256, uint256)'], [[0, 10]])]
+        inputs: [
+          abi.encode(['tuple(uint256, uint256)'], [[0, 10]]),
+          stateObject
+        ]
       }
     })
+
     it('succeed to finalize checkpoint', async () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         mockCommitmentContract.address,
-        mockAdjudicationContract.address
+        mockAdjudicationContract.address,
+        mockStateUpdatePredicateContract.address
       ])
-      await expect(depositContract.finalizeCheckpoint(checkpointProperty))
-        .to.emit(depositContract, 'CheckpointFinalized')
-        .to.emit(depositContract, 'LogCheckpoint')
+      await expect(
+        depositContract.finalizeCheckpoint(checkpointProperty)
+      ).to.emit(depositContract, 'CheckpointFinalized')
     })
     it('fail to finalize checkpoint because checkpoint claim not decided true', async () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         mockCommitmentContract.address,
-        mockFailingAdjudicationContract.address
+        mockFailingAdjudicationContract.address,
+        mockStateUpdatePredicateContract.address
       ])
       await expect(depositContract.finalizeCheckpoint(checkpointProperty)).to.be
         .reverted
@@ -150,7 +169,8 @@ describe('DepositContract', () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         mockCommitmentContract.address,
-        mockAdjudicationContract.address
+        mockAdjudicationContract.address,
+        mockStateUpdatePredicateContract.address
       ])
       mockOwnershipPredicate = await deployContract(
         wallet,
@@ -259,7 +279,8 @@ describe('DepositContract', () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         mockCommitmentContract.address,
-        mockAdjudicationContract.address
+        mockAdjudicationContract.address,
+        mockStateUpdatePredicateContract.address
       ])
     })
     it('succeed to extend', async () => {
@@ -275,7 +296,8 @@ describe('DepositContract', () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         mockCommitmentContract.address,
-        mockAdjudicationContract.address
+        mockAdjudicationContract.address,
+        mockStateUpdatePredicateContract.address
       ])
       await depositContract.extendDepositedRanges(500)
     })
