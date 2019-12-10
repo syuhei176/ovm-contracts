@@ -33,7 +33,7 @@ library DataTypes {
     }
     struct Checkpoint {
         Range subrange;
-        StateUpdate stateUpdate;
+        Property stateUpdate;
     }
     struct Exit {
         Range subrange;

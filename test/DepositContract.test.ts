@@ -31,6 +31,7 @@ describe('DepositContract', () => {
   let mockAdjudicationContract: ethers.Contract,
     mockFailingAdjudicationContract: ethers.Contract
   let mockCommitmentContract: ethers.Contract
+  let mockStateUpdatePredicateContract: ethers.Contract
 
   beforeEach(async () => {
     const utils = await deployContract(wallet, Utils, [])
@@ -53,6 +54,11 @@ describe('DepositContract', () => {
       mockAdjudicationContract.address,
       utils.address
     ])
+    mockStateUpdatePredicateContract = await deployContract(
+      wallet,
+      TestPredicate,
+      [mockAdjudicationContract.address, utils.address]
+    )
     mockTokenContract = await deployContract(wallet, MockToken, [])
     await mockTokenContract.mint(wallet.address, 100)
   })
@@ -64,7 +70,8 @@ describe('DepositContract', () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         mockCommitmentContract.address,
-        mockAdjudicationContract.address
+        mockAdjudicationContract.address,
+        mockStateUpdatePredicateContract.address
       ])
       stateObject = {
         predicateAddress: testPredicate.address,
@@ -105,7 +112,8 @@ describe('DepositContract', () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         mockCommitmentContract.address,
-        mockAdjudicationContract.address
+        mockAdjudicationContract.address,
+        mockStateUpdatePredicateContract.address
       ])
       await expect(
         depositContract.finalizeCheckpoint(checkpointProperty)
@@ -115,7 +123,8 @@ describe('DepositContract', () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         mockCommitmentContract.address,
-        mockFailingAdjudicationContract.address
+        mockFailingAdjudicationContract.address,
+        mockStateUpdatePredicateContract.address
       ])
       await expect(depositContract.finalizeCheckpoint(checkpointProperty)).to.be
         .reverted
@@ -160,7 +169,8 @@ describe('DepositContract', () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         mockCommitmentContract.address,
-        mockAdjudicationContract.address
+        mockAdjudicationContract.address,
+        mockStateUpdatePredicateContract.address
       ])
       mockOwnershipPredicate = await deployContract(
         wallet,
@@ -269,7 +279,8 @@ describe('DepositContract', () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         mockCommitmentContract.address,
-        mockAdjudicationContract.address
+        mockAdjudicationContract.address,
+        mockStateUpdatePredicateContract.address
       ])
     })
     it('succeed to extend', async () => {
@@ -285,7 +296,8 @@ describe('DepositContract', () => {
       depositContract = await deployContract(wallet, DepositContract, [
         mockTokenContract.address,
         mockCommitmentContract.address,
-        mockAdjudicationContract.address
+        mockAdjudicationContract.address,
+        mockStateUpdatePredicateContract.address
       ])
       await depositContract.extendDepositedRanges(500)
     })

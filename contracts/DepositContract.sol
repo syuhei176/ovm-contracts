@@ -24,14 +24,24 @@ contract DepositContract {
     ERC20 public erc20;
     CommitmentContract public commitmentContract;
     UniversalAdjudicationContract public universalAdjudicationContract;
+    // Fixme: when StateUpdatePredicate is merged
+    address public stateUpdatePredicateContract;
+
     uint256 public totalDeposited;
     mapping (uint256 => types.Range) public depositedRanges;
     mapping (bytes32 => types.Checkpoint) public checkpoints;
 
-    constructor(address _erc20, address _commitmentContract, address _universalAdjudicationContract) public {
+    constructor(
+        address _erc20,
+        address _commitmentContract,
+        address _universalAdjudicationContract,
+        // Fixme: when StateUpdatePredicate is merged
+        address _stateUpdatePredicateContract
+    ) public {
         erc20 = ERC20(_erc20);
         commitmentContract = CommitmentContract(_commitmentContract);
         universalAdjudicationContract = UniversalAdjudicationContract(_universalAdjudicationContract);
+        stateUpdatePredicateContract = _stateUpdatePredicateContract;
     }
 
     /**
@@ -43,11 +53,15 @@ contract DepositContract {
     function deposit(uint256 _amount, types.Property memory _initialState) public {
         erc20.transferFrom(msg.sender, address(this), _amount);
         types.Range memory depositRange = types.Range({start:totalDeposited, end:totalDeposited + _amount});
-        types.StateUpdate memory stateUpdate = types.StateUpdate({
-            stateObject: _initialState,
-            range: depositRange,
-            blockNumber: getLatestPlasmaBlockNumber() - 1,
-            depositAddress: address(this)
+        bytes[] memory inputs = new bytes[](4);
+        inputs[0] = abi.encode(address(this));
+        inputs[1] = abi.encode(depositRange);
+        inputs[2] = abi.encode(getLatestPlasmaBlockNumber() - 1);
+        inputs[3] = abi.encode(_initialState);
+        types.Property memory stateUpdate = types.Property({
+            // Fixme: when StateUpdatePredicate is merged
+            predicateAddress: stateUpdatePredicateContract,
+            inputs: inputs
         });
         types.Checkpoint memory checkpoint = types.Checkpoint({
             subrange: depositRange,
@@ -116,12 +130,7 @@ contract DepositContract {
         types.Property memory property = abi.decode(_checkpointProperty.inputs[1], (types.Property));
         types.Checkpoint memory checkpoint = types.Checkpoint({
             subrange: range,
-            stateUpdate: types.StateUpdate({
-                stateObject: property,
-                range: range,
-                blockNumber: getLatestPlasmaBlockNumber() - 1,
-                depositAddress: address(this)
-            })
+            stateUpdate: property
         });
 
         bytes32 checkpointId = getCheckpointId(checkpoint);
@@ -172,7 +181,7 @@ contract DepositContract {
         types.Property memory stateUpdateProperty = abi.decode(_checkpoint.inputs[1], (types.Property));
         return types.Checkpoint({
             subrange: range,
-            stateUpdate: deserializeStateUpdate(stateUpdateProperty)
+            stateUpdate: stateUpdateProperty
         });
     }
 
