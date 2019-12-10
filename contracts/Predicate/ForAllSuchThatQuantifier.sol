@@ -32,7 +32,7 @@ contract ForAllSuchThatQuantifier is LogicalConnective {
         bytes[] calldata _inputs,
         bytes calldata _challengeInput,
         types.Property calldata _challnge
-    ) external returns (bool) {
+    ) external view returns (bool) {
         // challenge should be not(p[quantified])
         require(
             _challnge.predicateAddress == notPredicateAddress,

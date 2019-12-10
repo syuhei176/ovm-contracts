@@ -6,7 +6,8 @@ import {
   solidity
 } from 'ethereum-waffle'
 import * as Utils from '../build/Utils.json'
-import * as UniversalAdjudicationContract from '../build/UniversalAdjudicationContract.json'
+import * as MockAdjudicationContract from '../build/MockAdjudicationContract.json'
+import * as MockChallenge from '../build/MockChallenge.json'
 import * as ForAllSuchThatQuantifier from '../build/ForAllSuchThatQuantifier.json'
 import * as AndPredicate from '../build/AndPredicate.json'
 import * as NotPredicate from '../build/NotPredicate.json'
@@ -29,6 +30,7 @@ describe('ForAllSuchThatQuantifier', () => {
   let forAllSuchThatQuantifier: ethers.Contract
   let notPredicate: ethers.Contract
   let adjudicationContract: ethers.Contract
+  let mockChallenge: ethers.Contract
   let trueProperty: OvmProperty,
     notTrueProperty: OvmProperty,
     forAllSuchThatProperty: OvmProperty
@@ -38,10 +40,11 @@ describe('ForAllSuchThatQuantifier', () => {
   }
 
   beforeEach(async () => {
+    mockChallenge = await deployContract(wallet, MockChallenge, [])
     utils = await deployContract(wallet, Utils, [])
     adjudicationContract = await deployContract(
       wallet,
-      UniversalAdjudicationContract,
+      MockAdjudicationContract,
       [utils.address]
     )
     notPredicate = await deployContract(wallet, NotPredicate, [
@@ -96,29 +99,20 @@ describe('ForAllSuchThatQuantifier', () => {
   describe('isValidChallenge', () => {
     it('validate challenge with not(test(0x01)) to for all t such that Test(t)', async () => {
       const challengeInput = '0x01'
-      await adjudicationContract.claimProperty(forAllSuchThatProperty)
-      await adjudicationContract.claimProperty(notTrueProperty)
-      const gameId = getGameIdFromProperty(forAllSuchThatProperty)
-      const challengingGameId = getGameIdFromProperty(notTrueProperty)
-      await adjudicationContract.challenge(
-        gameId,
-        [challengeInput],
-        challengingGameId
+      const result = await mockChallenge.isValidChallenge(
+        forAllSuchThatProperty,
+        challengeInput,
+        notTrueProperty
       )
-      const game = await adjudicationContract.getGame(gameId)
-      assert.equal(game.challenges.length, 1)
+      assert.isTrue(result)
     })
     it('fail to validate challenge with test(0x01) to for all t such that Test(t)', async () => {
       const challengeInput = '0x01'
-      await adjudicationContract.claimProperty(forAllSuchThatProperty)
-      await adjudicationContract.claimProperty(trueProperty)
-      const gameId = getGameIdFromProperty(forAllSuchThatProperty)
-      const challengingGameId = getGameIdFromProperty(trueProperty)
       await expect(
-        adjudicationContract.challenge(
-          gameId,
-          [challengeInput],
-          challengingGameId
+        mockChallenge.isValidChallenge(
+          forAllSuchThatProperty,
+          challengeInput,
+          trueProperty
         )
       ).to.be.reverted
     })
@@ -138,17 +132,11 @@ describe('ForAllSuchThatQuantifier', () => {
           FreeVariable.from('n').toHexString()
         ]
       }
-      await adjudicationContract.claimProperty(forAllSuchThatProperty)
-      await adjudicationContract.claimProperty(notTrueProperty)
-      const gameId = getGameIdFromProperty(forAllSuchThatProperty)
-      const challengingGameId = getGameIdFromProperty(notTrueProperty)
-      await adjudicationContract.challenge(
-        gameId,
-        [challengeInput],
-        challengingGameId
+      mockChallenge.isValidChallenge(
+        forAllSuchThatProperty,
+        challengeInput,
+        notTrueProperty
       )
-      const game = await adjudicationContract.getGame(gameId)
-      assert.equal(game.challenges.length, 1)
     })
   })
 })
