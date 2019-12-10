@@ -73,9 +73,10 @@ describe('DepositContract', () => {
     })
     it('succeed to deposit 1 MockToken', async () => {
       await mockTokenContract.approve(depositContract.address, 10)
-      await expect(depositContract.deposit(1, stateObject))
-        .to.emit(depositContract, 'CheckpointFinalized')
-        .to.emit(depositContract, 'LogCheckpoint')
+      await expect(depositContract.deposit(1, stateObject)).to.emit(
+        depositContract,
+        'CheckpointFinalized'
+      )
     })
     it('fail to deposit 1 MockToken because of not approved', async () => {
       await expect(depositContract.deposit(1, stateObject)).to.be.reverted
@@ -97,9 +98,9 @@ describe('DepositContract', () => {
         mockCommitmentContract.address,
         mockAdjudicationContract.address
       ])
-      await expect(depositContract.finalizeCheckpoint(checkpointProperty))
-        .to.emit(depositContract, 'CheckpointFinalized')
-        .to.emit(depositContract, 'LogCheckpoint')
+      await expect(
+        depositContract.finalizeCheckpoint(checkpointProperty)
+      ).to.emit(depositContract, 'CheckpointFinalized')
     })
     it('fail to finalize checkpoint because checkpoint claim not decided true', async () => {
       depositContract = await deployContract(wallet, DepositContract, [

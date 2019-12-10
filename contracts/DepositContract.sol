@@ -12,10 +12,7 @@ import {UniversalAdjudicationContract} from "./UniversalAdjudicationContract.sol
 contract DepositContract {
     /* Events */
     event CheckpointFinalized(
-        bytes32 checkpointId
-    );
-
-    event LogCheckpoint(
+        bytes32 checkpointId,
         types.Checkpoint checkpoint
     );
 
@@ -53,12 +50,12 @@ contract DepositContract {
             depositAddress: address(this)
         });
         types.Checkpoint memory checkpoint = types.Checkpoint({
-            subrange: depositRange
+            subrange: depositRange,
+            stateUpdate: stateUpdate
         });
         extendDepositedRanges(_amount);
         bytes32 checkpointId = getCheckpointId(checkpoint);
-        emit CheckpointFinalized(checkpointId);
-        emit LogCheckpoint(checkpoint);
+        emit CheckpointFinalized(checkpointId, checkpoint);
     }
 
     function extendDepositedRanges(uint256 _amount) public {
@@ -109,16 +106,16 @@ contract DepositContract {
 
     /**
      * finalizeCheckpoint
-     * @param _checkpointProperty A property which is instance of checkpoint predicate and its input is range to create checkpoint.
+     * @param _checkpointProperty A property which is instance of checkpoint predicate
+     * its first input is range to create checkpoint and second input is property for stateObject.
      */
     function finalizeCheckpoint(types.Property memory _checkpointProperty) public {
         require(universalAdjudicationContract.isDecided(_checkpointProperty), "Checkpointing claim must be decided");
-        types.Checkpoint memory checkpoint = deserializeCheckpoint(_checkpointProperty);
+        types.Checkpoint memory checkpoint = createCheckpoint(_checkpointProperty);
         bytes32 checkpointId = getCheckpointId(checkpoint);
         // store the checkpoint
         checkpoints[checkpointId] = checkpoint;
-        emit CheckpointFinalized(checkpointId);
-        emit LogCheckpoint(checkpoint);
+        emit CheckpointFinalized(checkpointId, checkpoint);
     }
 
     /**
@@ -158,10 +155,12 @@ contract DepositContract {
     /**
      * @dev deserialize property to Checkpoint instance
      */
-    function deserializeCheckpoint(types.Property memory _checkpoint) private pure returns (types.Checkpoint memory) {
+    function createCheckpoint(types.Property memory _checkpoint) private pure returns (types.Checkpoint memory) {
         types.Range memory range = abi.decode(_checkpoint.inputs[0], (types.Range));
+        types.Property memory stateUpdateProperty = abi.decode(_checkpoint.inputs[1], (types.Property));
         return types.Checkpoint({
-            subrange: range
+            subrange: range,
+            stateUpdate: deserializeStateUpdate(stateUpdateProperty)
         });
     }
 
