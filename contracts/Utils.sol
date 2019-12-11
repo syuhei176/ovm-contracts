@@ -9,7 +9,16 @@ contract Utils {
             addr := mload(add(addressBytes, 20))
         } 
     }
-    
+
+    function bytesToBytes32(bytes memory source) public pure returns (bytes32 result) {
+        if (source.length == 0) {
+            return 0x0;
+        }
+        assembly {
+            result := mload(add(source, 32))
+        }
+    }
+
     function getPropertyId(types.Property memory _property) public pure returns (bytes32) {
         return keccak256(abi.encode(_property));
     }
@@ -24,6 +33,14 @@ contract Utils {
 
     function subBytes(bytes memory target, uint startIndex, uint endIndex) private pure returns (bytes memory) {
         bytes memory result = new bytes(endIndex - startIndex);
+        for(uint i = startIndex; i < endIndex; i++) {
+            result[i - startIndex] = target[i];
+        }
+        return result;
+    }
+
+    function subArray(bytes[] memory target, uint startIndex, uint endIndex) public pure returns (bytes[] memory) {
+        bytes[] memory result = new bytes[](endIndex - startIndex);
         for(uint i = startIndex; i < endIndex; i++) {
             result[i - startIndex] = target[i];
         }

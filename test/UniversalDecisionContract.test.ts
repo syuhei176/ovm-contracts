@@ -13,7 +13,7 @@ import * as TestPredicate from '../build/TestPredicate.json'
 import * as ethers from 'ethers'
 const abi = new ethers.utils.AbiCoder()
 import { increaseBlocks } from './helpers/increaseBlocks'
-import { getGameIdFromProperty, OvmProperty } from './helpers/getGameId'
+import { getGameIdFromProperty, OvmProperty } from './helpers/utils'
 
 chai.use(solidity)
 chai.use(require('chai-as-promised'))

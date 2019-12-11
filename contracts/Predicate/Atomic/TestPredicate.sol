@@ -21,9 +21,14 @@ contract TestPredicate is AtomicPredicate {
 
     event ValueDecided(bool decision, bytes[] inputs);
 
-    function decideTrue(bytes[] memory _inputs) public {
+    function decide(bytes[] memory _inputs) public pure returns (bool) {
         require(_inputs.length > 0, "This property is not true");
+        return true;
+    }
 
+    function decideTrue(bytes[] memory _inputs) public {
+        require(decide(_inputs), "This property is not true");
+        
         types.Property memory property = types.Property({
             predicateAddress: address(this),
             inputs: _inputs

@@ -14,3 +14,18 @@ export function getGameIdFromProperty(ovmProperty: OvmProperty) {
     )
   )
 }
+
+export function encodeProperty(property: OvmProperty) {
+  return abi.encode(
+    ['tuple(address, bytes[])'],
+    [[property.predicateAddress, property.inputs]]
+  )
+}
+
+export function encodeString(str: string) {
+  return ethers.utils.hexlify(ethers.utils.toUtf8Bytes(str))
+}
+
+export function randomAddress() {
+  return ethers.utils.hexlify(ethers.utils.randomBytes(20))
+}

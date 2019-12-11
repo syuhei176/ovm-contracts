@@ -129,7 +129,7 @@ contract UniversalAdjudicationContract {
         return true; // Always return true until we know what to whitelist
     }
 
-    function isDecided(types.Property memory _property) public returns (bool) {
+    function isDecided(types.Property memory _property) public view returns (bool) {
         return instantiatedGames[utils.getPropertyId(_property)].decision == types.Decision.True;
     }
 

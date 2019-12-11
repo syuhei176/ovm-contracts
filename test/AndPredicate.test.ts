@@ -14,7 +14,7 @@ import * as NotPredicate from '../build/NotPredicate.json'
 import * as TestPredicate from '../build/TestPredicate.json'
 import * as ethers from 'ethers'
 const abi = new ethers.utils.AbiCoder()
-import { OvmProperty } from './helpers/getGameId'
+import { OvmProperty } from './helpers/utils'
 
 chai.use(solidity)
 chai.use(require('chai-as-promised'))
