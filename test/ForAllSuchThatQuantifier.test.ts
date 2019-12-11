@@ -13,8 +13,7 @@ import * as AndPredicate from '../build/AndPredicate.json'
 import * as NotPredicate from '../build/NotPredicate.json'
 import * as TestPredicate from '../build/TestPredicate.json'
 import * as ethers from 'ethers'
-const abi = new ethers.utils.AbiCoder()
-import { getGameIdFromProperty, OvmProperty } from './helpers/utils'
+import { encodeProperty, encodeString, OvmProperty } from './helpers/utils'
 import { FreeVariable } from 'wakkanay/dist/ovm/types'
 chai.use(solidity)
 chai.use(require('chai-as-promised'))
@@ -34,10 +33,6 @@ describe('ForAllSuchThatQuantifier', () => {
   let trueProperty: OvmProperty,
     notTrueProperty: OvmProperty,
     forAllSuchThatProperty: OvmProperty
-
-  const createPlaceholder = (name: string) => {
-    return ethers.utils.hexlify(ethers.utils.toUtf8Bytes(name))
-  }
 
   beforeEach(async () => {
     mockChallenge = await deployContract(wallet, MockChallenge, [])
@@ -77,21 +72,24 @@ describe('ForAllSuchThatQuantifier', () => {
     notTrueProperty = {
       predicateAddress: notPredicate.address,
       inputs: [
-        abi.encode(
-          ['tuple(address, bytes[])'],
-          [[testPredicate.address, ['0x01']]]
-        )
+        encodeProperty({
+          predicateAddress: testPredicate.address,
+          inputs: ['0x01']
+        })
       ]
     }
     forAllSuchThatProperty = {
       predicateAddress: forAllSuchThatQuantifier.address,
       inputs: [
-        abi.encode(['tuple(address, bytes[])'], [[testPredicate.address, []]]),
-        createPlaceholder('n'),
-        abi.encode(
-          ['tuple(address, bytes[])'],
-          [[testPredicate.address, [FreeVariable.from('n').toHexString()]]]
-        )
+        encodeProperty({
+          predicateAddress: testPredicate.address,
+          inputs: []
+        }),
+        encodeString('n'),
+        encodeProperty({
+          predicateAddress: testPredicate.address,
+          inputs: [FreeVariable.from('n').toHexString()]
+        })
       ]
     }
   })
@@ -120,17 +118,13 @@ describe('ForAllSuchThatQuantifier', () => {
 
   describe('set property as variable', () => {
     it('for all property such that: property()', async () => {
-      const challengeInput = abi.encode(
-        ['tuple(address, bytes[])'],
-        [[testPredicate.address, ['0x01']]]
-      )
+      const challengeInput = encodeProperty({
+        predicateAddress: testPredicate.address,
+        inputs: ['0x01']
+      })
       const forAllSuchThatProperty = {
         predicateAddress: forAllSuchThatQuantifier.address,
-        inputs: [
-          '0x',
-          createPlaceholder('n'),
-          FreeVariable.from('n').toHexString()
-        ]
+        inputs: ['0x', encodeString('n'), FreeVariable.from('n').toHexString()]
       }
       mockChallenge.isValidChallenge(
         forAllSuchThatProperty,
