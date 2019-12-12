@@ -15,14 +15,19 @@ contract IsValidSignaturePredicate is AtomicPredicate {
         uacAddress = _uacAddress;
         utils = Utils(_utilsAddress);
     }
-    
-    function decideTrue(bytes[] memory _inputs) public {
+
+    function decide(bytes[] memory _inputs) public view returns (bool) {
         require(keccak256(abi.encodePacked(string(_inputs[3]))) == keccak256("secp256k1"), "verifierType must be secp256k1");
         require(ECRecover.ecverify(
             keccak256(_inputs[0]),
             _inputs[1],
             utils.bytesToAddress(_inputs[2])
-        ), "This property is not true");
+        ), "_inputs[1] must be signature of _inputs[0] by _inputs[2]");
+        return true;
+    }
+
+    function decideTrue(bytes[] memory _inputs) public {
+        require(decide(_inputs), "must be true");
 
         types.Property memory property = types.Property({
             predicateAddress: address(this),

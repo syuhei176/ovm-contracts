@@ -13,7 +13,7 @@ import * as MockOwnershipPredicate from '../build/MockOwnershipPredicate.json'
 import * as TestPredicate from '../build/TestPredicate.json'
 import * as MockAdjudicationContract from '../build/MockAdjudicationContract.json'
 import * as ethers from 'ethers'
-import { OvmProperty } from './helpers/getGameId'
+import { OvmProperty } from './helpers/utils'
 const abi = new ethers.utils.AbiCoder()
 
 chai.use(solidity)

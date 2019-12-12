@@ -14,6 +14,7 @@ import * as MockStateUpdatePredicate from '../../../build/MockStateUpdatePredica
 import * as IsContainedPredicate from '../../../build/IsContainedPredicate.json'
 import * as ethers from 'ethers'
 const abi = new ethers.utils.AbiCoder()
+import { encodeProperty } from '../../helpers/utils'
 
 chai.use(solidity)
 chai.use(require('chai-as-promised'))
@@ -70,41 +71,26 @@ describe('IsValidStateTransition', () => {
     let su: string
 
     beforeEach(() => {
-      const previousStateObject = abi.encode(
-        ['tuple(address, bytes[])'],
-        [[stateUpdatePredicate.address, [previousOwner]]]
-      )
-      const stateObject = abi.encode(
-        ['tuple(address, bytes[])'],
-        [[stateUpdatePredicate.address, [owner]]]
-      )
-      prevSu = abi.encode(
-        ['tuple(address, bytes[])'],
-        [
-          [
-            stateUpdatePredicate.address,
-            [token, range, previousBlockNumber, previousStateObject]
-          ]
-        ]
-      )
-      tx = abi.encode(
-        ['tuple(address, bytes[])'],
-        [
-          [
-            txPredicate.address,
-            [token, range, previousBlockNumber, stateObject]
-          ]
-        ]
-      )
-      su = abi.encode(
-        ['tuple(address, bytes[])'],
-        [
-          [
-            stateUpdatePredicate.address,
-            [token, range, blockNumber, stateObject]
-          ]
-        ]
-      )
+      const previousStateObject = encodeProperty({
+        predicateAddress: stateUpdatePredicate.address,
+        inputs: [previousOwner]
+      })
+      const stateObject = encodeProperty({
+        predicateAddress: stateUpdatePredicate.address,
+        inputs: [owner]
+      })
+      prevSu = encodeProperty({
+        predicateAddress: stateUpdatePredicate.address,
+        inputs: [token, range, previousBlockNumber, previousStateObject]
+      })
+      tx = encodeProperty({
+        predicateAddress: txPredicate.address,
+        inputs: [token, range, previousBlockNumber, stateObject]
+      })
+      su = encodeProperty({
+        predicateAddress: stateUpdatePredicate.address,
+        inputs: [token, range, blockNumber, stateObject]
+      })
     })
 
     it('suceed to decide', async () => {
@@ -117,19 +103,14 @@ describe('IsValidStateTransition', () => {
     })
 
     it('fail to decide with invalid transaction', async () => {
-      const stateObject = abi.encode(
-        ['tuple(address, bytes[])'],
-        [[stateUpdatePredicate.address, [wallets[2].address]]]
-      )
-      const invalidTx = abi.encode(
-        ['tuple(address, bytes[])'],
-        [
-          [
-            txPredicate.address,
-            [token, range, previousBlockNumber, stateObject]
-          ]
-        ]
-      )
+      const stateObject = encodeProperty({
+        predicateAddress: stateUpdatePredicate.address,
+        inputs: [wallets[2].address]
+      })
+      const invalidTx = encodeProperty({
+        predicateAddress: txPredicate.address,
+        inputs: [token, range, previousBlockNumber, stateObject]
+      })
       await expect(
         isValidStateTransitionPredicate.decide([prevSu, invalidTx, su])
       ).to.be.revertedWith('state object must be same')
