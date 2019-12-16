@@ -6,6 +6,11 @@ import { config } from 'dotenv'
 import { resolve } from 'path'
 
 import * as CommitmentContract from '../build/contracts/CommitmentContract.json'
+import * as UniversalAdjudicationContract from '../build/contracts/UniversalAdjudicationContract.json'
+import * as DepositContract from '../build/contracts/DepositContract.json'
+import * as Utils from '../build/contracts/Utils.json'
+import * as MockToken from '../build/contracts/MockToken.json'
+import * as MockStateUpdate from '../build/contracts/MockStateUpdatePredicate.json'
 import Provider = ethers.providers.Provider
 import fs from 'fs'
 
@@ -50,8 +55,43 @@ const deployContracts = async (wallet: ethers.Wallet): Promise<void> => {
   if (operatorAddress === undefined) {
     throw new Error('OPERATOR_ADDRESS not provided.')
   }
-  await deployContract(CommitmentContract, wallet, operatorAddress)
+  const commitmentContract = await deployContract(
+    CommitmentContract,
+    wallet,
+    operatorAddress
+  )
   console.log('CommitmentContract Deployed')
+
+  console.log('Deploying Utils')
+  const utils = await deployContract(Utils, wallet)
+  console.log('Utils Deployed')
+
+  console.log('Deploying UniversalAdjudicationContract')
+  const adjudicationContract = await deployContract(
+    UniversalAdjudicationContract,
+    wallet,
+    utils.address
+  )
+  console.log('UniversalAdjudicationContract Deployed')
+
+  console.log('Deploying MockToken')
+  const mockToken = await deployContract(MockToken, wallet)
+  console.log('MockToken Deployed')
+
+  console.log('Deploying MockStateUpdate')
+  const mockStateUpdate = await deployContract(MockStateUpdate, wallet)
+  console.log('MockStateUpdate Deployed')
+
+  console.log('Deploying DepositContract')
+  await deployContract(
+    DepositContract,
+    wallet,
+    mockToken.address,
+    commitmentContract.address,
+    adjudicationContract.address,
+    mockStateUpdate.address
+  )
+  console.log('DepositContract Deployed')
 }
 
 const deploy = async (): Promise<void> => {
