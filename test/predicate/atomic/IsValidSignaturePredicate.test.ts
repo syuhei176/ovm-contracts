@@ -6,10 +6,10 @@ import {
   solidity,
   link
 } from 'ethereum-waffle'
-import * as MockAdjudicationContract from '../../../build/MockAdjudicationContract.json'
-import * as Utils from '../../../build/Utils.json'
-import * as ECRecover from '../../../build/ECRecover.json'
-import * as IsValidSignaturePredicate from '../../../build/IsValidSignaturePredicate.json'
+import * as MockAdjudicationContract from '../../../build/contracts/MockAdjudicationContract.json'
+import * as Utils from '../../../build/contracts/Utils.json'
+import * as ECRecover from '../../../build/contracts/ECRecover.json'
+import * as IsValidSignaturePredicate from '../../../build/contracts/IsValidSignaturePredicate.json'
 import * as ethers from 'ethers'
 import { hexlify, toUtf8Bytes } from 'ethers/utils'
 

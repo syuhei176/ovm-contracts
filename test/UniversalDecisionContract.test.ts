@@ -6,10 +6,10 @@ import {
   getWallets,
   solidity
 } from 'ethereum-waffle'
-import * as UniversalAdjudicationContract from '../build/UniversalAdjudicationContract.json'
-import * as Utils from '../build/Utils.json'
-import * as NotPredicate from '../build/NotPredicate.json'
-import * as TestPredicate from '../build/TestPredicate.json'
+import * as UniversalAdjudicationContract from '../build/contracts/UniversalAdjudicationContract.json'
+import * as Utils from '../build/contracts/Utils.json'
+import * as NotPredicate from '../build/contracts/NotPredicate.json'
+import * as TestPredicate from '../build/contracts/TestPredicate.json'
 import * as ethers from 'ethers'
 const abi = new ethers.utils.AbiCoder()
 import { increaseBlocks } from './helpers/increaseBlocks'

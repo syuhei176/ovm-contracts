@@ -15,14 +15,9 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "outDir": "./build",
+    "outDir": "./build/scripts",
     "rootDir": "./"
   },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "*.sol", "**/*.sol",
-    "*.json", "**/*.json"
-  ],
-  "include": ["*.ts", "**/*.ts"]
+  "exclude": ["node_modules", "build"],
+  "include": ["scripts"]
 }

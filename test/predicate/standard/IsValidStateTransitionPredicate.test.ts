@@ -6,12 +6,12 @@ import {
   solidity,
   link
 } from 'ethereum-waffle'
-import * as MockAdjudicationContract from '../../../build/MockAdjudicationContract.json'
-import * as Utils from '../../../build/Utils.json'
-import * as IsValidStateTransitionPredicate from '../../../build/IsValidStateTransitionPredicate.json'
-import * as MockTxPredicate from '../../../build/MockTxPredicate.json'
-import * as MockStateUpdatePredicate from '../../../build/MockStateUpdatePredicate.json'
-import * as IsContainedPredicate from '../../../build/IsContainedPredicate.json'
+import * as MockAdjudicationContract from '../../../build/contracts/MockAdjudicationContract.json'
+import * as Utils from '../../../build/contracts/Utils.json'
+import * as IsValidStateTransitionPredicate from '../../../build/contracts/IsValidStateTransitionPredicate.json'
+import * as MockTxPredicate from '../../../build/contracts/MockTxPredicate.json'
+import * as MockStateUpdatePredicate from '../../../build/contracts/MockStateUpdatePredicate.json'
+import * as IsContainedPredicate from '../../../build/contracts/IsContainedPredicate.json'
 import * as ethers from 'ethers'
 const abi = new ethers.utils.AbiCoder()
 import { encodeProperty } from '../../helpers/utils'

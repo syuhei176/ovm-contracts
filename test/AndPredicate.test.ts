@@ -6,12 +6,12 @@ import {
   getWallets,
   solidity
 } from 'ethereum-waffle'
-import * as MockAdjudicationContract from '../build/MockAdjudicationContract.json'
-import * as MockChallenge from '../build/MockChallenge.json'
-import * as Utils from '../build/Utils.json'
-import * as AndPredicate from '../build/AndPredicate.json'
-import * as NotPredicate from '../build/NotPredicate.json'
-import * as TestPredicate from '../build/TestPredicate.json'
+import * as MockAdjudicationContract from '../build/contracts/MockAdjudicationContract.json'
+import * as MockChallenge from '../build/contracts/MockChallenge.json'
+import * as Utils from '../build/contracts/Utils.json'
+import * as AndPredicate from '../build/contracts/AndPredicate.json'
+import * as NotPredicate from '../build/contracts/NotPredicate.json'
+import * as TestPredicate from '../build/contracts/TestPredicate.json'
 import * as ethers from 'ethers'
 const abi = new ethers.utils.AbiCoder()
 import { OvmProperty } from './helpers/utils'
