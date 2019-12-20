@@ -53,16 +53,17 @@ describe('VerifyInclusionPredicate', () => {
     const range = abi.encode(['tuple(uint256, uint256)'], [[100, 200]])
     const inclusionProof = abi.encode(
       [
-        'tuple(tuple(uint256, tuple(address, bytes32)[]), tuple(uint256, uint256, tuple(uint256, bytes32)[]))'
+        'tuple(tuple(address, uint256, tuple(bytes32, address)[]), tuple(uint256, uint256, tuple(bytes32, uint256)[]))'
       ],
       [
         [
           [
+            '0x0000000000000000000000000000000000000000',
             0,
             [
               [
-                '0x0000000000000000000000000000000000000001',
-                '0xdd779be20b84ced84b7cbbdc8dc98d901ecd198642313d35d32775d75d916d3a'
+                '0xdd779be20b84ced84b7cbbdc8dc98d901ecd198642313d35d32775d75d916d3a',
+                '0x0000000000000000000000000000000000000001'
               ]
             ]
           ],
@@ -71,12 +72,12 @@ describe('VerifyInclusionPredicate', () => {
             0,
             [
               [
-                7,
-                '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da'
+                '0x036491cc10808eeb0ff717314df6f19ba2e232d04d5f039f6fa382cae41641da',
+                7
               ],
               [
-                5000,
-                '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a'
+                '0xef583c07cae62e3a002a9ad558064ae80db17162801132f9327e8bb6da16ea8a',
+                5000
               ]
             ]
           ]

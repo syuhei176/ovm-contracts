@@ -37,17 +37,18 @@ library DataTypes {
     }
 
     struct InclusionProof {
-        IntervalInclusionProof intervalInclusionProof;
         AddressInclusionProof addressInclusionProof;
+        IntervalInclusionProof intervalInclusionProof;
     }
 
     struct IntervalInclusionProof {
+        uint256 leafIndex;
         uint256 leafPosition;
-        uint256 leafStart;
         IntervalTreeNode[] siblings;
     }
 
     struct AddressInclusionProof {
+        address leafIndex;
         uint256 leafPosition;
         AddressTreeNode[] siblings;
     }

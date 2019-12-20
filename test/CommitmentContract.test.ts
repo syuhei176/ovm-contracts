@@ -85,6 +85,7 @@ describe('CommitmentContract', () => {
     const validInclusionProof = {
       addressInclusionProof: {
         leafPosition: 0,
+        leafIndex: '0x0000000000000000000000000000000000000000',
         siblings: [
           {
             tokenAddress: '0x0000000000000000000000000000000000000001',
@@ -95,7 +96,7 @@ describe('CommitmentContract', () => {
       },
       intervalInclusionProof: {
         leafPosition: 0,
-        leafStart: 0,
+        leafIndex: 0,
         siblings: [
           {
             start: 7,
@@ -131,6 +132,7 @@ describe('CommitmentContract', () => {
       const inclusionProofOfNode1 = {
         addressInclusionProof: {
           leafPosition: 0,
+          leafIndex: '0x0000000000000000000000000000000000000000',
           siblings: [
             {
               tokenAddress: '0x0000000000000000000000000000000000000001',
@@ -141,7 +143,7 @@ describe('CommitmentContract', () => {
         },
         intervalInclusionProof: {
           leafPosition: 1,
-          leafStart: 7,
+          leafIndex: 7,
           siblings: [
             {
               start: 0,
@@ -171,6 +173,7 @@ describe('CommitmentContract', () => {
       const inclusionProofOfNode2 = {
         addressInclusionProof: {
           leafPosition: 0,
+          leafIndex: '0x0000000000000000000000000000000000000000',
           siblings: [
             {
               tokenAddress: '0x0000000000000000000000000000000000000001',
@@ -181,7 +184,7 @@ describe('CommitmentContract', () => {
         },
         intervalInclusionProof: {
           leafPosition: 2,
-          leafStart: 15,
+          leafIndex: 15,
           siblings: [
             {
               start: 5000,
@@ -211,6 +214,7 @@ describe('CommitmentContract', () => {
       const inclusionProofOfNode3 = {
         addressInclusionProof: {
           leafPosition: 0,
+          leafIndex: '0x0000000000000000000000000000000000000000',
           siblings: [
             {
               tokenAddress: '0x0000000000000000000000000000000000000001',
@@ -221,7 +225,7 @@ describe('CommitmentContract', () => {
         },
         intervalInclusionProof: {
           leafPosition: 3,
-          leafStart: 5000,
+          leafIndex: 5000,
           siblings: [
             {
               start: 15,
@@ -285,6 +289,7 @@ describe('CommitmentContract', () => {
       const invalidInclusionProof = {
         addressInclusionProof: {
           leafPosition: 0,
+          leafIndex: '0x0000000000000000000000000000000000000000',
           siblings: [
             {
               tokenAddress: '0x0000000000000000000000000000000000000001',
@@ -295,7 +300,7 @@ describe('CommitmentContract', () => {
         },
         intervalInclusionProof: {
           leafPosition: 0,
-          leafStart: 0,
+          leafIndex: 0,
           siblings: [
             {
               start: 7,
@@ -328,6 +333,7 @@ describe('CommitmentContract', () => {
       const invalidInclusionProof = {
         addressInclusionProof: {
           leafPosition: 0,
+          leafIndex: '0x0000000000000000000000000000000000000000',
           siblings: [
             {
               tokenAddress: '0x0000000000000000000000000000000000000001',
@@ -338,7 +344,7 @@ describe('CommitmentContract', () => {
         },
         intervalInclusionProof: {
           leafPosition: 1,
-          leafStart: 7,
+          leafIndex: 7,
           siblings: [
             {
               start: 0,
@@ -362,6 +368,49 @@ describe('CommitmentContract', () => {
           blockNumber
         )
       ).to.be.revertedWith('_leftStart must be less than _rightStart')
+    })
+
+    it('fail to verify inclusion because of address', async () => {
+      const invalidInclusionProof = {
+        addressInclusionProof: {
+          leafPosition: 0,
+          leafIndex: '0x0000000000000000000000000000000000000001',
+          siblings: [
+            {
+              tokenAddress: '0x0000000000000000000000000000000000000001',
+              data:
+                '0xdd779be20b84ced84b7cbbdc8dc98d901ecd198642313d35d32775d75d916d3a'
+            }
+          ]
+        },
+        intervalInclusionProof: {
+          leafPosition: 3,
+          leafIndex: 5000,
+          siblings: [
+            {
+              start: 15,
+              data:
+                '0xba620d61dac4ddf2d7905722b259b0bd34ec4d37c5796d9a22537c54b3f972d8'
+            },
+            {
+              start: 7,
+              data:
+                '0x59a76952828fd54de12b708bf0030e055ae148c0a5a7d8b4f191d519275337e8'
+            }
+          ]
+        }
+      }
+      await expect(
+        commitmentContract.verifyInclusion(
+          leaf3.data,
+          '0x0000000000000000000000000000000000000002',
+          { start: 5000, end: 5010 },
+          invalidInclusionProof,
+          blockNumber
+        )
+      ).to.be.revertedWith(
+        'required address must not exceed the implicit address'
+      )
     })
   })
 
