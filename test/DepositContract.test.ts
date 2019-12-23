@@ -3,7 +3,8 @@ import {
   createMockProvider,
   deployContract,
   getWallets,
-  solidity
+  solidity,
+  link
 } from 'ethereum-waffle'
 import * as Utils from '../build/contracts/Utils.json'
 import * as DepositContract from '../build/contracts/DepositContract.json'
@@ -12,6 +13,7 @@ import * as MockCommitmentContract from '../build/contracts/MockCommitmentContra
 import * as MockOwnershipPredicate from '../build/contracts/MockOwnershipPredicate.json'
 import * as TestPredicate from '../build/contracts/TestPredicate.json'
 import * as MockAdjudicationContract from '../build/contracts/MockAdjudicationContract.json'
+import * as Deserializer from '../build/contracts/Deserializer.json'
 import * as ethers from 'ethers'
 import { OvmProperty, randomAddress, encodeProperty } from './helpers/utils'
 const abi = new ethers.utils.AbiCoder()
@@ -35,6 +37,16 @@ describe('DepositContract', () => {
   let mockStateUpdatePredicateContract: ethers.Contract
 
   beforeEach(async () => {
+    const deserializer = await deployContract(wallet, Deserializer, [])
+    try {
+      link(
+        DepositContract,
+        'contracts/Library/Deserializer.sol:Deserializer',
+        deserializer.address
+      )
+    } catch (e) {
+      // link fail in second time.
+    }
     const utils = await deployContract(wallet, Utils, [])
     mockCommitmentContract = await deployContract(
       wallet,
@@ -163,12 +175,9 @@ describe('DepositContract', () => {
               [
                 stateUpdateAddress,
                 [
-                  abi.encode(['uint256'], [0]),
-                  abi.encode(
-                    ['address'],
-                    [depositContractAddress || depositContract.address]
-                  ),
+                  depositContractAddress || depositContract.address,
                   abi.encode(['tuple(uint256, uint256)'], [[0, 10]]),
+                  abi.encode(['uint256'], [0]),
                   ownershipStateObject
                 ]
               ]

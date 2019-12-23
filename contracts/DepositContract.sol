@@ -11,6 +11,7 @@ import {CommitmentContract} from "./CommitmentContract.sol";
 import {
     UniversalAdjudicationContract
 } from "./UniversalAdjudicationContract.sol";
+import "./Library/Deserializer.sol";
 
 contract DepositContract {
     using SafeMath for uint256;
@@ -182,7 +183,7 @@ contract DepositContract {
         types.Property memory _exitProperty,
         uint256 _depositedRangeId
     ) public {
-        types.Exit memory exit = deserializeExit(_exitProperty);
+        types.Exit memory exit = Deserializer.deserializeExit(_exitProperty);
         bytes32 exitId = getExitId(exit);
         // Check that we are authorized to finalize this exit
         require(
@@ -242,53 +243,6 @@ contract DepositContract {
             types.Checkpoint({
                 subrange: range,
                 stateUpdate: stateUpdateProperty
-            });
-    }
-
-    /**
-     * @dev deserialize property to Exit instance
-     */
-    function deserializeExit(types.Property memory _exit)
-        private
-        pure
-        returns (types.Exit memory)
-    {
-        types.Range memory range = abi.decode(_exit.inputs[0], (types.Range));
-        types.Property memory stateUpdateProperty = abi.decode(
-            _exit.inputs[1],
-            (types.Property)
-        );
-        return
-            types.Exit({
-                stateUpdate: deserializeStateUpdate(stateUpdateProperty),
-                subrange: range
-            });
-    }
-
-    /**
-     * @dev deserialize property to StateUpdate instance
-     */
-    function deserializeStateUpdate(types.Property memory _stateUpdate)
-        private
-        pure
-        returns (types.StateUpdate memory)
-    {
-        uint256 blockNumber = abi.decode(_stateUpdate.inputs[0], (uint256));
-        address depositAddress = abi.decode(_stateUpdate.inputs[1], (address));
-        types.Range memory range = abi.decode(
-            _stateUpdate.inputs[2],
-            (types.Range)
-        );
-        types.Property memory stateObject = abi.decode(
-            _stateUpdate.inputs[3],
-            (types.Property)
-        );
-        return
-            types.StateUpdate({
-                blockNumber: blockNumber,
-                depositAddress: depositAddress,
-                range: range,
-                stateObject: stateObject
             });
     }
 
