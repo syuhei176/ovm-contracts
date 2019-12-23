@@ -60,8 +60,8 @@ describe('DepositContract', () => {
       TestPredicate,
       [mockAdjudicationContract.address, utils.address]
     )
+
     mockTokenContract = await deployContract(wallet, MockToken, [])
-    await mockTokenContract.mint(wallet.address, MaxUint256)
   })
 
   describe('deposit', () => {
@@ -87,6 +87,7 @@ describe('DepositContract', () => {
       )
     })
     it('fail to deposit 1 MockToken because of not approved', async () => {
+      await mockTokenContract.setFailingMode(true)
       await expect(depositContract.deposit(1, stateObject)).to.be.reverted
     })
     it('Total deposited amount does not overflow', async () => {

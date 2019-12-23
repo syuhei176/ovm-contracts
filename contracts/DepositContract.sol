@@ -62,7 +62,10 @@ contract DepositContract {
             totalDeposited < 2**256 - 1 - _amount,
             "DepositContract: totalDeposited exceed max uint256"
         );
-        erc20.transferFrom(msg.sender, address(this), _amount);
+        require(
+            erc20.transferFrom(msg.sender, address(this), _amount),
+            "must approved"
+        );
         types.Range memory depositRange = types.Range({
             start: totalDeposited,
             end: totalDeposited.add(_amount)
