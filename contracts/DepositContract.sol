@@ -65,9 +65,8 @@ contract DepositContract {
         inputs[1] = abi.encode(depositRange);
         inputs[2] = abi.encode(getLatestPlasmaBlockNumber() - 1);
         inputs[3] = abi.encode(_initialState);
-        types.Property memory stateUpdate = types.Property({
-            predicateAddress: // Fixme: when StateUpdatePredicate is merged
-            stateUpdatePredicateContract,
+        types.Property memory stateUpdate = types.Property({ // Fixme: when StateUpdatePredicate is merged
+            predicateAddress: stateUpdatePredicateContract,
             inputs: inputs
         });
         types.Checkpoint memory checkpoint = types.Checkpoint({
