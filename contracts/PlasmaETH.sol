@@ -13,8 +13,8 @@ contract PlasmaETH is ERC20 {
     }
 
     /**
-     * PlasmaETH.deposit execute deposit flow automatically.
-     * wrap and
+     * @dev deposit is the way to skip wrap and approve in deposit flow.
+     * This method execute deposit flow automatically.
      */
     function deposit(uint256 _amount, types.Property memory _initialState)
         public
@@ -29,7 +29,7 @@ contract PlasmaETH is ERC20 {
     }
 
     /**
-     * wrap ETH in PlasmaETH
+     * @dev wrap ETH in PlasmaETH
      */
     function wrap(uint256 _amount) public payable {
         require(
@@ -40,7 +40,7 @@ contract PlasmaETH is ERC20 {
     }
 
     /**
-     * unwrap PlasmaETH
+     * @dev unwrap PlasmaETH
      */
     function unwrap(uint256 _amount) public {
         require(

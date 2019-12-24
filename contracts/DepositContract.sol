@@ -195,8 +195,8 @@ contract DepositContract {
             "finalizeExit must be called from StateObject contract"
         );
         require(
-            exit.stateUpdate.depositAddress == address(this),
-            "StateUpdate.depositAddress must be this contract address"
+            exit.stateUpdate.depositContractAddress == address(this),
+            "StateUpdate.depositContractAddress must be this contract address"
         );
         // Remove the deposited range
         removeDepositedRange(exit.subrange, _depositedRangeId);

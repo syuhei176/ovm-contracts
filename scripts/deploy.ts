@@ -94,7 +94,7 @@ const deployContracts = async (wallet: ethers.Wallet): Promise<void> => {
     'contracts/Library/Deserializer.sol:Deserializer',
     deserializer.address
   )
-  await deployContract(
+  const depositContract = await deployContract(
     DepositContract,
     wallet,
     plasmaETH.address,
@@ -102,6 +102,7 @@ const deployContracts = async (wallet: ethers.Wallet): Promise<void> => {
     adjudicationContract.address,
     mockStateUpdate.address
   )
+  await plasmaETH.setDepositContractAddress(depositContract.address)
   console.log('DepositContract Deployed')
 }
 

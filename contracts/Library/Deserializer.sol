@@ -45,7 +45,7 @@ library Deserializer {
         return
             types.StateUpdate({
                 blockNumber: blockNumber,
-                depositAddress: depositAddress,
+                depositContractAddress: depositAddress,
                 range: range,
                 stateObject: stateObject
             });
