@@ -4,12 +4,14 @@
 import { ethers } from 'ethers'
 import { config } from 'dotenv'
 import { resolve } from 'path'
+import { link } from 'ethereum-waffle'
 
 import * as CommitmentContract from '../build/contracts/CommitmentContract.json'
+import * as Deserializer from '../build/contracts/Deserializer.json'
 import * as UniversalAdjudicationContract from '../build/contracts/UniversalAdjudicationContract.json'
 import * as DepositContract from '../build/contracts/DepositContract.json'
 import * as Utils from '../build/contracts/Utils.json'
-import * as MockToken from '../build/contracts/MockToken.json'
+import * as PlasmaETH from '../build/contracts/PlasmaETH.json'
 import * as MockStateUpdate from '../build/contracts/MockStateUpdatePredicate.json'
 import Provider = ethers.providers.Provider
 import fs from 'fs'
@@ -39,7 +41,7 @@ const deployContract = async (
 ): Promise<ethers.Contract> => {
   const factory = new ethers.ContractFactory(
     contractJson.abi,
-    contractJson.bytecode,
+    contractJson.evm.bytecode,
     wallet
   )
   const contract = await factory.deploy(...args)
@@ -66,6 +68,10 @@ const deployContracts = async (wallet: ethers.Wallet): Promise<void> => {
   const utils = await deployContract(Utils, wallet)
   console.log('Utils Deployed')
 
+  console.log('Deploying Deserializer')
+  const deserializer = await deployContract(Deserializer, wallet)
+  console.log('Deserializer Deployed')
+
   console.log('Deploying UniversalAdjudicationContract')
   const adjudicationContract = await deployContract(
     UniversalAdjudicationContract,
@@ -74,19 +80,24 @@ const deployContracts = async (wallet: ethers.Wallet): Promise<void> => {
   )
   console.log('UniversalAdjudicationContract Deployed')
 
-  console.log('Deploying MockToken')
-  const mockToken = await deployContract(MockToken, wallet)
-  console.log('MockToken Deployed')
+  console.log('Deploying PlasmaETH')
+  const plasmaETH = await deployContract(PlasmaETH, wallet)
+  console.log('PlasmaETH Deployed')
 
   console.log('Deploying MockStateUpdate')
   const mockStateUpdate = await deployContract(MockStateUpdate, wallet)
   console.log('MockStateUpdate Deployed')
 
   console.log('Deploying DepositContract')
+  link(
+    DepositContract,
+    'contracts/Library/Deserializer.sol:Deserializer',
+    deserializer.address
+  )
   await deployContract(
     DepositContract,
     wallet,
-    mockToken.address,
+    plasmaETH.address,
     commitmentContract.address,
     adjudicationContract.address,
     mockStateUpdate.address
