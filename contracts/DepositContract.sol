@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 /* External Imports */
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 /* Internal Imports */
 import {DataTypes as types} from "./DataTypes.sol";
@@ -12,6 +13,8 @@ import {
 } from "./UniversalAdjudicationContract.sol";
 
 contract DepositContract {
+    using SafeMath for uint256;
+
     /* Events */
     event CheckpointFinalized(
         bytes32 checkpointId,
@@ -55,10 +58,14 @@ contract DepositContract {
     function deposit(uint256 _amount, types.Property memory _initialState)
         public
     {
+        require(
+            totalDeposited < 2**256 - 1 - _amount,
+            "DepositContract: totalDeposited exceed max uint256"
+        );
         erc20.transferFrom(msg.sender, address(this), _amount);
         types.Range memory depositRange = types.Range({
             start: totalDeposited,
-            end: totalDeposited + _amount
+            end: totalDeposited.add(_amount)
         });
         bytes[] memory inputs = new bytes[](4);
         inputs[0] = abi.encode(address(this));
@@ -90,9 +97,9 @@ contract DepositContract {
             delete depositedRanges[oldEnd];
             newStart = oldStart;
         }
-        uint256 newEnd = totalDeposited + _amount;
+        uint256 newEnd = totalDeposited.add(_amount);
         depositedRanges[newEnd] = types.Range({start: newStart, end: newEnd});
-        totalDeposited += _amount;
+        totalDeposited = totalDeposited.add(_amount);
     }
 
     function removeDepositedRange(
