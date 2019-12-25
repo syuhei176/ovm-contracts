@@ -22,9 +22,9 @@ library DataTypes {
         uint256 end;
     }
     struct StateUpdate {
-        uint256 blockNumber;
-        address depositAddress;
+        address depositContractAddress;
         Range range;
+        uint256 blockNumber;
         Property stateObject;
     }
     struct Checkpoint {
