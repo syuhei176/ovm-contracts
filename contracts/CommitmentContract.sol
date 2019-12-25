@@ -61,21 +61,26 @@ contract CommitmentContract {
         // Calcurate the root of interval tree
         (bytes32 computedRoot, uint256 implicitEnd) = computeIntervalTreeRoot(
             _leaf,
-            _inclusionProof.intervalInclusionProof.leafStart,
+            _inclusionProof.intervalInclusionProof.leafIndex,
             _inclusionProof.intervalInclusionProof.leafPosition,
             _inclusionProof.intervalInclusionProof.siblings
         );
         require(
-            _range.start >= _inclusionProof.intervalInclusionProof.leafStart &&
+            _range.start >= _inclusionProof.intervalInclusionProof.leafIndex &&
                 _range.end <= implicitEnd,
             "required range must not exceed the implicit range"
         );
         // Calcurate the root of address tree
-        computedRoot = computeAddressTreeRoot(
+        address implicitAddress;
+        (computedRoot, implicitAddress) = computeAddressTreeRoot(
             computedRoot,
             _tokenAddress,
             _inclusionProof.addressInclusionProof.leafPosition,
             _inclusionProof.addressInclusionProof.siblings
+        );
+        require(
+            _tokenAddress <= implicitAddress,
+            "required address must not exceed the implicit address"
         );
         return computedRoot == blocks[_blkNumber];
     }
@@ -150,7 +155,11 @@ contract CommitmentContract {
         address computeAddress,
         uint256 addressTreeMerklePath,
         types.AddressTreeNode[] memory addressTreeProof
-    ) private pure returns (bytes32) {
+    ) private pure returns (bytes32, address) {
+        address firstRightSiblingAddress = address(
+            0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF
+        );
+        bool isfirstRightSiblingAddressSet = false;
         for (uint256 i = 0; i < addressTreeProof.length; i += 1) {
             bytes32 sibling = addressTreeProof[i].data;
             address siblingAddress = addressTreeProof[i].tokenAddress;
@@ -166,6 +175,14 @@ contract CommitmentContract {
                 );
                 computeAddress = siblingAddress;
             } else {
+                if (!isfirstRightSiblingAddressSet) {
+                    firstRightSiblingAddress = siblingAddress;
+                    isfirstRightSiblingAddressSet = true;
+                }
+                require(
+                    firstRightSiblingAddress <= siblingAddress,
+                    "firstRightSiblingAddress must be greater than siblingAddress"
+                );
                 computedRoot = getParentOfAddressTreeNode(
                     computedRoot,
                     computeAddress,
@@ -174,7 +191,7 @@ contract CommitmentContract {
                 );
             }
         }
-        return computedRoot;
+        return (computedRoot, firstRightSiblingAddress);
     }
 
     function getParentOfAddressTreeNode(
