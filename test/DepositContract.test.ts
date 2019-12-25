@@ -13,8 +13,9 @@ import * as MockOwnershipPredicate from '../build/contracts/MockOwnershipPredica
 import * as TestPredicate from '../build/contracts/TestPredicate.json'
 import * as MockAdjudicationContract from '../build/contracts/MockAdjudicationContract.json'
 import * as ethers from 'ethers'
-import { OvmProperty } from './helpers/utils'
+import { OvmProperty, randomAddress, encodeProperty } from './helpers/utils'
 const abi = new ethers.utils.AbiCoder()
+const { MaxUint256 } = ethers.constants
 
 chai.use(solidity)
 chai.use(require('chai-as-promised'))
@@ -60,7 +61,7 @@ describe('DepositContract', () => {
       [mockAdjudicationContract.address, utils.address]
     )
     mockTokenContract = await deployContract(wallet, MockToken, [])
-    await mockTokenContract.mint(wallet.address, 100)
+    await mockTokenContract.mint(wallet.address, MaxUint256)
   })
 
   describe('deposit', () => {
@@ -87,6 +88,17 @@ describe('DepositContract', () => {
     })
     it('fail to deposit 1 MockToken because of not approved', async () => {
       await expect(depositContract.deposit(1, stateObject)).to.be.reverted
+    })
+    it('Total deposited amount does not overflow', async () => {
+      const amount = MaxUint256.sub(1)
+      await mockTokenContract.approve(depositContract.address, amount)
+      await expect(depositContract.deposit(amount, stateObject)).to.emit(
+        depositContract,
+        'CheckpointFinalized'
+      )
+      await expect(depositContract.deposit(1, stateObject)).to.be.revertedWith(
+        'DepositContract: totalDeposited exceed max uint256'
+      )
     })
   })
 
