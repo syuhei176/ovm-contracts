@@ -141,7 +141,7 @@ contract UniversalAdjudicationContract {
         require(
             LogicalConnective(game.property.predicateAddress).isValidChallenge(
                 game.property.inputs,
-                _challengeInputs[0],
+                _challengeInputs,
                 challengingGame.property
             ),
             "_challenge isn't valid"

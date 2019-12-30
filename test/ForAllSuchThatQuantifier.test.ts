@@ -99,7 +99,7 @@ describe('ForAllSuchThatQuantifier', () => {
       const challengeInput = '0x01'
       const result = await mockChallenge.isValidChallenge(
         forAllSuchThatProperty,
-        challengeInput,
+        [challengeInput],
         notTrueProperty
       )
       assert.isTrue(result)
@@ -109,7 +109,7 @@ describe('ForAllSuchThatQuantifier', () => {
       await expect(
         mockChallenge.isValidChallenge(
           forAllSuchThatProperty,
-          challengeInput,
+          [challengeInput],
           trueProperty
         )
       ).to.be.reverted
@@ -128,7 +128,7 @@ describe('ForAllSuchThatQuantifier', () => {
       }
       mockChallenge.isValidChallenge(
         forAllSuchThatProperty,
-        challengeInput,
+        [challengeInput],
         notTrueProperty
       )
     })

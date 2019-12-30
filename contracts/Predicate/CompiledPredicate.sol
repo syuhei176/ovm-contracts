@@ -4,9 +4,10 @@ pragma experimental ABIEncoderV2;
 import {DataTypes as types} from "../DataTypes.sol";
 
 interface CompiledPredicate {
+    function payoutContractAddress() external view returns (address);
     function isValidChallenge(
         bytes[] calldata _inputs,
-        bytes calldata _challengeInput,
+        bytes[] calldata _challengeInputs,
         types.Property calldata _challenge
     ) external view returns (bool);
     function decide(bytes[] calldata _inputs, bytes[] calldata _witness)

@@ -8,13 +8,13 @@ contract MockChallenge {
 
     function isValidChallenge(
         types.Property memory _property,
-        bytes memory _challengeInput,
+        bytes[] memory _challengeInputs,
         types.Property memory _child
     ) public view returns (bool) {
         return
             LogicalConnective(_property.predicateAddress).isValidChallenge(
                 _property.inputs,
-                _challengeInput,
+                _challengeInputs,
                 _child
             );
     }

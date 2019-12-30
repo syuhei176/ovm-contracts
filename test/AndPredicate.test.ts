@@ -90,7 +90,7 @@ describe('AndPredicate', () => {
       const challengeInput = abi.encode(['uint256'], [0])
       const result = await mockChallenge.isValidChallenge(
         andProperty,
-        challengeInput,
+        [challengeInput],
         notTrueProperty
       )
       assert.isTrue(result)
@@ -99,7 +99,7 @@ describe('AndPredicate', () => {
       const challengeInput = abi.encode(['uint256'], [1])
       const result = await mockChallenge.isValidChallenge(
         andProperty,
-        challengeInput,
+        [challengeInput],
         notFalseProperty
       )
       assert.isTrue(result)
@@ -109,7 +109,7 @@ describe('AndPredicate', () => {
       await expect(
         mockChallenge.isValidChallenge(
           andProperty,
-          challengeInput,
+          [challengeInput],
           trueProperty
         )
       ).to.be.reverted

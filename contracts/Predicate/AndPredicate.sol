@@ -46,11 +46,11 @@ contract AndPredicate is LogicalConnective {
      */
     function isValidChallenge(
         bytes[] calldata _inputs,
-        bytes calldata _challengeInput,
+        bytes[] calldata _challengeInputs,
         types.Property calldata _challnge
     ) external view returns (bool) {
         // challengeInput is index of child property
-        uint256 index = abi.decode(_challengeInput, (uint256));
+        uint256 index = abi.decode(_challengeInputs[0], (uint256));
         // challenge should be not(p[index])
         require(_challnge.predicateAddress == notPredicateAddress);
         require(keccak256(_inputs[index]) == keccak256(_challnge.inputs[0]));
