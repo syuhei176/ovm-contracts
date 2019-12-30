@@ -17,7 +17,7 @@ contract IsContainedPredicate is AtomicPredicate {
         utils = Utils(_utilsAddress);
     }
 
-    function decide(bytes[] memory _inputs) public pure returns (bool) {
+    function decide(bytes[] memory _inputs) public view returns (bool) {
         types.Range memory range = abi.decode(_inputs[0], (types.Range));
         types.Range memory subrange = abi.decode(_inputs[1], (types.Range));
         require(

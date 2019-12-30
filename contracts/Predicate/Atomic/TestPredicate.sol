@@ -23,7 +23,7 @@ contract TestPredicate is AtomicPredicate {
 
     event ValueDecided(bool decision, bytes[] inputs);
 
-    function decide(bytes[] memory _inputs) public pure returns (bool) {
+    function decide(bytes[] memory _inputs) public view returns (bool) {
         require(_inputs.length > 0, "This property is not true");
         return true;
     }

@@ -32,7 +32,7 @@ contract ForAllSuchThatQuantifier is LogicalConnective {
      */
     function isValidChallenge(
         bytes[] calldata _inputs,
-        bytes calldata _challengeInput,
+        bytes[] calldata _challengeInputs,
         types.Property calldata _challnge
     ) external view returns (bool) {
         // challenge should be not(p[quantified])
@@ -43,7 +43,7 @@ contract ForAllSuchThatQuantifier is LogicalConnective {
         // check inner property
         require(
             keccak256(
-                replaceVariable(_inputs[2], _inputs[1], _challengeInput)
+                replaceVariable(_inputs[2], _inputs[1], _challengeInputs[0])
             ) ==
                 keccak256(_challnge.inputs[0]),
             "must be valid inner property"

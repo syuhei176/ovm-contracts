@@ -130,6 +130,9 @@ contract UniversalAdjudicationContract {
 
     /**
      * @dev challenge a game specified by gameId with a challengingGame specified by _challengingGameId
+     * @param _gameId challenged game id
+     * @param _challengeInputs array of input to verify child of game tree
+     * @param _challengingGameId child of game tree
      */
     function challenge(
         bytes32 _gameId,
@@ -141,7 +144,7 @@ contract UniversalAdjudicationContract {
         require(
             LogicalConnective(game.property.predicateAddress).isValidChallenge(
                 game.property.inputs,
-                _challengeInputs[0],
+                _challengeInputs,
                 challengingGame.property
             ),
             "_challenge isn't valid"

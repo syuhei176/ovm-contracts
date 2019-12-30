@@ -12,7 +12,7 @@ import * as UniversalAdjudicationContract from '../build/contracts/UniversalAdju
 import * as DepositContract from '../build/contracts/DepositContract.json'
 import * as Utils from '../build/contracts/Utils.json'
 import * as PlasmaETH from '../build/contracts/PlasmaETH.json'
-import * as MockStateUpdate from '../build/contracts/MockStateUpdatePredicate.json'
+import * as MockStateUpdate from '../build/contracts/MockCompiledPredicate.json'
 import Provider = ethers.providers.Provider
 import fs from 'fs'
 

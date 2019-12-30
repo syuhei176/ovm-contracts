@@ -9,8 +9,7 @@ import {
 import * as MockAdjudicationContract from '../../../build/contracts/MockAdjudicationContract.json'
 import * as Utils from '../../../build/contracts/Utils.json'
 import * as IsValidStateTransitionPredicate from '../../../build/contracts/IsValidStateTransitionPredicate.json'
-import * as MockTxPredicate from '../../../build/contracts/MockTxPredicate.json'
-import * as MockStateUpdatePredicate from '../../../build/contracts/MockStateUpdatePredicate.json'
+import * as MockCompiledPredicate from '../../../build/contracts/MockCompiledPredicate.json'
 import * as IsContainedPredicate from '../../../build/contracts/IsContainedPredicate.json'
 import * as ethers from 'ethers'
 const abi = new ethers.utils.AbiCoder()
@@ -32,10 +31,10 @@ describe('IsValidStateTransition', () => {
 
   beforeEach(async () => {
     const utils = await deployContract(wallet, Utils, [])
-    txPredicate = await deployContract(wallet, MockTxPredicate, [])
+    txPredicate = await deployContract(wallet, MockCompiledPredicate, [])
     stateUpdatePredicate = await deployContract(
       wallet,
-      MockStateUpdatePredicate,
+      MockCompiledPredicate,
       []
     )
     adjudicationContract = await deployContract(

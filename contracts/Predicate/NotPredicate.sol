@@ -40,7 +40,7 @@ contract NotPredicate is LogicalConnective {
      */
     function isValidChallenge(
         bytes[] calldata _inputs,
-        bytes calldata _challengeInput,
+        bytes[] calldata _challengeInputs,
         types.Property calldata _challenge
     ) external view returns (bool) {
         // The valid challenge of not(p) is p and _inputs[0] is p here
