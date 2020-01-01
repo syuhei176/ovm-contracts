@@ -68,6 +68,10 @@ contract Utils {
         return keccak256(abi.encode(_property));
     }
 
+    /**
+     * @dev check target is variable or not.
+     *     A variable has prefix V and its length is less than 20.
+     */
     function isPlaceholder(bytes memory target) public pure returns (bool) {
         return
             target.length < 20 &&
