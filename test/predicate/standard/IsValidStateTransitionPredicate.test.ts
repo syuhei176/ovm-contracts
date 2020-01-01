@@ -13,7 +13,7 @@ import * as MockCompiledPredicate from '../../../build/contracts/MockCompiledPre
 import * as IsContainedPredicate from '../../../build/contracts/IsContainedPredicate.json'
 import * as ethers from 'ethers'
 const abi = new ethers.utils.AbiCoder()
-import { encodeProperty } from '../../helpers/utils'
+import { encodeProperty, encodeRange, encodeInteger } from '../../helpers/utils'
 
 chai.use(solidity)
 chai.use(require('chai-as-promised'))
@@ -60,9 +60,9 @@ describe('IsValidStateTransition', () => {
 
   describe('decide', () => {
     const token = ethers.constants.AddressZero
-    const range = abi.encode(['tuple(uint256, uint256)'], [[100, 200]])
-    const previousBlockNumber = abi.encode(['uint256'], [30])
-    const blockNumber = abi.encode(['uint256'], [60])
+    const range = encodeRange(100, 200)
+    const previousBlockNumber = encodeInteger(30)
+    const blockNumber = encodeInteger(60)
     const previousOwner = wallets[0].address
     const owner = wallets[1].address
     let prevSu: string

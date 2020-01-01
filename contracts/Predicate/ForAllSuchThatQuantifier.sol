@@ -64,7 +64,7 @@ contract ForAllSuchThatQuantifier is LogicalConnective {
         // For instance, we can write a property like `∀su ∈ SU: su()`.
         if (utils.isPlaceholder(propertyBytes)) {
             if (
-                keccak256(utils.getPlaceholderName(propertyBytes)) ==
+                keccak256(utils.getInputValue(propertyBytes)) ==
                 keccak256(placeholder)
             ) {
                 return quantified;
@@ -98,9 +98,7 @@ contract ForAllSuchThatQuantifier is LogicalConnective {
             for (uint256 i = 0; i < property.inputs.length; i++) {
                 if (utils.isPlaceholder(property.inputs[i])) {
                     if (
-                        keccak256(
-                            utils.getPlaceholderName(property.inputs[i])
-                        ) ==
+                        keccak256(utils.getInputValue(property.inputs[i])) ==
                         keccak256(placeholder)
                     ) {
                         property.inputs[i] = quantified;
