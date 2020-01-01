@@ -67,10 +67,7 @@ contract DepositContract {
             erc20.transferFrom(msg.sender, address(this), _amount),
             "must approved"
         );
-        types.Range memory depositRange = types.Range({
-            start: totalDeposited,
-            end: totalDeposited.add(_amount)
-        });
+        types.Range memory depositRange = extendDepositedRanges(_amount);
         bytes[] memory inputs = new bytes[](4);
         inputs[0] = abi.encode(address(this));
         inputs[1] = abi.encode(depositRange);
@@ -84,12 +81,14 @@ contract DepositContract {
             subrange: depositRange,
             stateUpdate: stateUpdate
         });
-        extendDepositedRanges(_amount);
         bytes32 checkpointId = getCheckpointId(checkpoint);
         emit CheckpointFinalized(checkpointId, checkpoint);
     }
 
-    function extendDepositedRanges(uint256 _amount) public {
+    function extendDepositedRanges(uint256 _amount)
+        public
+        returns (types.Range memory)
+    {
         uint256 oldStart = depositedRanges[totalDeposited].start;
         uint256 oldEnd = depositedRanges[totalDeposited].end;
         uint256 newStart;
@@ -102,8 +101,13 @@ contract DepositContract {
             newStart = oldStart;
         }
         uint256 newEnd = totalDeposited.add(_amount);
-        depositedRanges[newEnd] = types.Range({start: newStart, end: newEnd});
-        totalDeposited = totalDeposited.add(_amount);
+        types.Range memory depositRange = types.Range({
+            start: newStart,
+            end: newEnd
+        });
+        depositedRanges[newEnd] = depositRange;
+        totalDeposited = newEnd;
+        return depositRange;
     }
 
     function removeDepositedRange(
