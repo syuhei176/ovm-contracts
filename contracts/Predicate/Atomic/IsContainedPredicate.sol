@@ -18,8 +18,8 @@ contract IsContainedPredicate is AtomicPredicate {
     }
 
     function decide(bytes[] memory _inputs) public view returns (bool) {
-        types.Range memory range = abi.decode(_inputs[0], (types.Range));
-        types.Range memory subrange = abi.decode(_inputs[1], (types.Range));
+        types.Range memory range = utils.bytesToRange(_inputs[0]);
+        types.Range memory subrange = utils.bytesToRange(_inputs[1]);
         require(
             range.start <= subrange.start && subrange.end <= range.end,
             "range must contain subrange"

@@ -13,7 +13,13 @@ import * as AndPredicate from '../build/contracts/AndPredicate.json'
 import * as NotPredicate from '../build/contracts/NotPredicate.json'
 import * as TestPredicate from '../build/contracts/TestPredicate.json'
 import * as ethers from 'ethers'
-import { encodeProperty, encodeString, OvmProperty } from './helpers/utils'
+import {
+  encodeProperty,
+  encodeString,
+  encodeVariable,
+  prefix,
+  OvmProperty
+} from './helpers/utils'
 import { FreeVariable } from 'wakkanay/dist/ovm/types'
 chai.use(solidity)
 chai.use(require('chai-as-promised'))
@@ -88,7 +94,8 @@ describe('ForAllSuchThatQuantifier', () => {
         encodeString('n'),
         encodeProperty({
           predicateAddress: testPredicate.address,
-          inputs: [FreeVariable.from('n').toHexString()]
+          // TODO: FreeVariable.from('n').toHexString()
+          inputs: [encodeVariable('n')]
         })
       ]
     }
@@ -124,7 +131,7 @@ describe('ForAllSuchThatQuantifier', () => {
       })
       const forAllSuchThatProperty = {
         predicateAddress: forAllSuchThatQuantifier.address,
-        inputs: ['0x', encodeString('n'), FreeVariable.from('n').toHexString()]
+        inputs: ['0x', encodeString('n'), encodeVariable('n')]
       }
       mockChallenge.isValidChallenge(
         forAllSuchThatProperty,
