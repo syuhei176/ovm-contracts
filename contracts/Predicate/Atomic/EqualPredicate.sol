@@ -1,22 +1,22 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
-import {DataTypes as types} from "../../DataTypes.sol";
 import "../../Utils.sol";
+import "../AtomicPredicate.sol";
 import "./BaseAtomicPredicate.sol";
 
-contract IsContainedPredicate is BaseAtomicPredicate {
+contract EqualPredicate is BaseAtomicPredicate {
     constructor(address _uacAddress, address _utilsAddress)
         public
         BaseAtomicPredicate(_uacAddress, _utilsAddress)
     {}
 
     function decide(bytes[] memory _inputs) public view returns (bool) {
-        types.Range memory range = utils.bytesToRange(_inputs[0]);
-        types.Range memory subrange = utils.bytesToRange(_inputs[1]);
+        bytes32 hashOfFirstInput = keccak256(_inputs[0]);
+        bytes32 hashOfSecondInput = keccak256(_inputs[1]);
         require(
-            range.start <= subrange.start && subrange.end <= range.end,
-            "range must contain subrange"
+            hashOfFirstInput == hashOfSecondInput,
+            "2 inputs must be equal"
         );
         return true;
     }

@@ -2,21 +2,15 @@ pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
 import {DataTypes as types} from "../../DataTypes.sol";
-import "../AtomicPredicate.sol";
-import {
-    UniversalAdjudicationContract
-} from "../../UniversalAdjudicationContract.sol";
 import "../../Utils.sol";
+import "./BaseAtomicPredicate.sol";
 import "../../Library/ECRecover.sol";
 
-contract IsValidSignaturePredicate is AtomicPredicate {
-    address uacAddress;
-    Utils utils;
-
-    constructor(address _uacAddress, address _utilsAddress) public {
-        uacAddress = _uacAddress;
-        utils = Utils(_utilsAddress);
-    }
+contract IsValidSignaturePredicate is BaseAtomicPredicate {
+    constructor(address _uacAddress, address _utilsAddress)
+        public
+        BaseAtomicPredicate(_uacAddress, _utilsAddress)
+    {}
 
     function decide(bytes[] memory _inputs) public view returns (bool) {
         require(
@@ -35,18 +29,5 @@ contract IsValidSignaturePredicate is AtomicPredicate {
             "_inputs[1] must be signature of _inputs[0] by _inputs[2]"
         );
         return true;
-    }
-
-    function decideTrue(bytes[] memory _inputs) public {
-        require(decide(_inputs), "must be true");
-
-        types.Property memory property = types.Property({
-            predicateAddress: address(this),
-            inputs: _inputs
-        });
-        UniversalAdjudicationContract(uacAddress).setPredicateDecision(
-            utils.getPropertyId(property),
-            true
-        );
     }
 }
