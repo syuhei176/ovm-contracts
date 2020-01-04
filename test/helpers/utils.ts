@@ -77,7 +77,7 @@ export function encodeConstant(str: string) {
 }
 
 export function encodeAddress(address: string) {
-  return address
+  return hexlify(padZeros(arrayify(address), 32))
 }
 
 export function randomAddress() {
