@@ -18,6 +18,7 @@ import * as ethers from 'ethers'
 import {
   OvmProperty,
   randomAddress,
+  encodeAddress,
   encodeProperty,
   encodeRange,
   encodeInteger
@@ -104,14 +105,14 @@ describe('DepositContract', () => {
       const event = await getTransactionEvent(provider, tx, depositContract)
       assert.equal(
         event.values.checkpointId,
-        '0x60bbf4a7211f6d50d0eb6a25dde9578157692d9cfbd3f1b3bdaa3a29ea350da0'
+        '0xf9f1a95730077ac5d890fe8614d4144030e357990707d6acde2d7b1d3954faf6'
       )
       assert.deepEqual(event.values.checkpoint, [
         [ethers.utils.bigNumberify(0), ethers.utils.bigNumberify(1)],
         [
           mockStateUpdatePredicateContract.address,
           [
-            depositContract.address.toLowerCase(),
+            encodeAddress(depositContract.address),
             encodeRange(0, 1),
             encodeInteger(100),
             encodeProperty(stateObject)
@@ -125,7 +126,7 @@ describe('DepositContract', () => {
         [
           mockStateUpdatePredicateContract.address,
           [
-            depositContract.address.toLowerCase(),
+            encodeAddress(depositContract.address),
             encodeRange(1, 3),
             encodeInteger(100),
             encodeProperty(stateObject)
