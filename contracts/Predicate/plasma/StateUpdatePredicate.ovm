@@ -1,0 +1,5 @@
+def stateUpdate(token, range, block_number, so, subrange) :=
+IsContained(subrange, range)
+and with Tx(token, subrange, block_number) as tx {
+  so(tx)
+}
