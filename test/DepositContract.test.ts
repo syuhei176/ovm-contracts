@@ -15,7 +15,14 @@ import * as TestPredicate from '../build/contracts/TestPredicate.json'
 import * as MockAdjudicationContract from '../build/contracts/MockAdjudicationContract.json'
 import * as Deserializer from '../build/contracts/Deserializer.json'
 import * as ethers from 'ethers'
-import { OvmProperty, randomAddress, encodeProperty } from './helpers/utils'
+import {
+  OvmProperty,
+  randomAddress,
+  encodeProperty,
+  encodeRange,
+  encodeInteger
+} from './helpers/utils'
+import { getTransactionEvent } from './helpers/getTransactionEvent'
 const abi = new ethers.utils.AbiCoder()
 const { MaxUint256 } = ethers.constants
 
@@ -93,10 +100,38 @@ describe('DepositContract', () => {
     })
     it('succeed to deposit 1 MockToken', async () => {
       await mockTokenContract.approve(depositContract.address, 10)
-      await expect(depositContract.deposit(1, stateObject)).to.emit(
-        depositContract,
-        'CheckpointFinalized'
+      const tx = await depositContract.deposit(1, stateObject)
+      const event = await getTransactionEvent(provider, tx, depositContract)
+      assert.equal(
+        event.values.checkpointId,
+        '0x60bbf4a7211f6d50d0eb6a25dde9578157692d9cfbd3f1b3bdaa3a29ea350da0'
       )
+      assert.deepEqual(event.values.checkpoint, [
+        [ethers.utils.bigNumberify(0), ethers.utils.bigNumberify(1)],
+        [
+          mockStateUpdatePredicateContract.address,
+          [
+            depositContract.address.toLowerCase(),
+            encodeRange(0, 1),
+            encodeInteger(100),
+            encodeProperty(stateObject)
+          ]
+        ]
+      ])
+      const tx2 = await depositContract.deposit(2, stateObject)
+      const event2 = await getTransactionEvent(provider, tx2, depositContract)
+      assert.deepEqual(event2.values.checkpoint, [
+        [ethers.utils.bigNumberify(1), ethers.utils.bigNumberify(3)],
+        [
+          mockStateUpdatePredicateContract.address,
+          [
+            depositContract.address.toLowerCase(),
+            encodeRange(1, 3),
+            encodeInteger(100),
+            encodeProperty(stateObject)
+          ]
+        ]
+      ])
     })
     it('fail to deposit 1 MockToken because of not approved', async () => {
       await mockTokenContract.setFailingMode(true)
