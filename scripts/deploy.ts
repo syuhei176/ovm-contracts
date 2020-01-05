@@ -19,6 +19,7 @@ import * as ForAllSuchThatQuantifier from '../build/contracts/ForAllSuchThatQuan
 import * as IsValidSignaturePredicate from '../build/contracts/IsValidSignaturePredicate.json'
 import * as IsContainedPredicate from '../build/contracts/IsContainedPredicate.json'
 import * as MockTxPredicate from '../build/contracts/MockCompiledPredicate.json'
+import * as OwnershipPayout from '../build/contracts/OwnershipPayout.json'
 import { randomAddress, encodeString } from '../test/helpers/utils'
 
 import Provider = ethers.providers.Provider
@@ -151,7 +152,12 @@ const deployPayoutContracts = async (
   const payoutContractAddressTable: { [key: string]: string } = {}
 
   console.log('Deploying OwnershipPayout')
-  payoutContractAddressTable['OwnershipPayout'] = ethers.constants.AddressZero // TODO: ownershipPayout.address
+  const ownershipPayout = await deployContract(
+    OwnershipPayout,
+    wallet,
+    utilsAddress
+  )
+  payoutContractAddressTable['OwnershipPayout'] = ownershipPayout.address
   console.log('OwnershipPayout Deployed')
 
   return payoutContractAddressTable

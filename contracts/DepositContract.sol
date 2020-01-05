@@ -182,7 +182,7 @@ contract DepositContract {
     function finalizeExit(
         types.Property memory _exitProperty,
         uint256 _depositedRangeId
-    ) public {
+    ) public returns (types.Exit memory) {
         types.Exit memory exit = Deserializer.deserializeExit(_exitProperty);
         bytes32 exitId = getExitId(exit);
         // Check that we are authorized to finalize this exit
@@ -204,6 +204,7 @@ contract DepositContract {
         uint256 amount = exit.subrange.end - exit.subrange.start;
         erc20.transfer(exit.stateUpdate.stateObject.predicateAddress, amount);
         emit ExitFinalized(exitId);
+        return exit;
     }
 
     /* Helpers */
