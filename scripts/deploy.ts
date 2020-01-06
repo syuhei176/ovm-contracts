@@ -57,11 +57,13 @@ const deployContract = async (
     contractJson.evm.bytecode,
     wallet
   )
-  const contract = await factory.deploy(...args)
-  console.log(
-    `Address: [${contract.address}], Tx: [${contract.deployTransaction.hash}]`
-  )
-  return contract.deployed()
+  const deployTx = await factory.getDeployTransaction(...args)
+  deployTx.gasPrice = 1000_000_000
+  const tx = await wallet.sendTransaction(deployTx)
+  const address = ethers.utils.getContractAddress(tx)
+  console.log(`Address: [${address}], Tx: [${tx.hash}]`)
+  await tx.wait()
+  return new ethers.Contract(address, factory.interface, factory.signer)
 }
 
 const deployLogicalConnective = async (
@@ -184,7 +186,7 @@ const deployOneCompiledPredicate = async (
     logicalConnectives['ForAllSuchThat'],
     ...extraArgs
   )
-  await compiledPredicates.setPredicateAddresses(
+  const tx = await compiledPredicates.setPredicateAddresses(
     atomicPredicates['IsLessThan'],
     atomicPredicates['Equal'],
     atomicPredicates['IsValidSignature'],
@@ -193,6 +195,7 @@ const deployOneCompiledPredicate = async (
     atomicPredicates['IsSameAmount'],
     payoutContractAddress
   )
+  await tx.wait()
   const source = fs.readFileSync(
     path.join(__dirname, `../../../contracts/Predicate/plasma/${name}.ovm`)
   )
