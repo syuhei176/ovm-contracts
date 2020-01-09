@@ -77,8 +77,11 @@ describe('UniversalAdjudicationContract', () => {
 
   describe('claimProperty', () => {
     it('adds a claim', async () => {
-      await adjudicationContract.claimProperty(notProperty)
       const claimId = getGameIdFromProperty(notProperty)
+      await expect(adjudicationContract.claimProperty(notProperty)).to.emit(
+        adjudicationContract,
+        'NewPropertyClaimed'
+      )
       const game = await adjudicationContract.getGame(claimId)
 
       // check newly stored property is equal to the claimed property
@@ -101,7 +104,11 @@ describe('UniversalAdjudicationContract', () => {
       await adjudicationContract.claimProperty(trueProperty)
       const gameId = getGameIdFromProperty(notProperty)
       const challengingGameId = getGameIdFromProperty(trueProperty)
-      await adjudicationContract.challenge(gameId, ['0x'], challengingGameId)
+      await expect(
+        adjudicationContract.challenge(gameId, ['0x'], challengingGameId)
+      )
+        .to.emit(adjudicationContract, 'GameChallenged')
+        .withArgs(gameId, challengingGameId)
       const game = await adjudicationContract.getGame(gameId)
 
       assert.equal(game.challenges.length, 1)
@@ -125,7 +132,11 @@ describe('UniversalAdjudicationContract', () => {
       const challengingGameId = getGameIdFromProperty(trueProperty)
       await adjudicationContract.challenge(gameId, ['0x'], challengingGameId)
       await testPredicate.decideTrue(['0x01'])
-      await adjudicationContract.decideClaimToFalse(gameId, challengingGameId)
+      await expect(
+        adjudicationContract.decideClaimToFalse(gameId, challengingGameId)
+      )
+        .to.emit(adjudicationContract, 'GameDecided')
+        .withArgs(gameId, false)
       const game = await adjudicationContract.getGame(gameId)
       // game should be decided false
       assert.equal(game.decision, False)
@@ -148,7 +159,9 @@ describe('UniversalAdjudicationContract', () => {
       const gameId = getGameIdFromProperty(notProperty)
       // increase 10 blocks to pass dispute period
       await increaseBlocks(wallets, 10)
-      await adjudicationContract.decideClaimToTrue(gameId)
+      await expect(adjudicationContract.decideClaimToTrue(gameId))
+        .to.emit(adjudicationContract, 'GameDecided')
+        .withArgs(gameId, true)
 
       const game = await adjudicationContract.getGame(gameId)
       // game should be decided true
@@ -166,7 +179,10 @@ describe('UniversalAdjudicationContract', () => {
     it('decide bool(true) decided true', async () => {
       await adjudicationContract.claimProperty(trueProperty)
       const gameId = getGameIdFromProperty(trueProperty)
-      await testPredicate.decideTrue(trueProperty.inputs)
+      await expect(testPredicate.decideTrue(trueProperty.inputs)).to.emit(
+        adjudicationContract,
+        'AtomicPropositionDecided'
+      )
       const game = await adjudicationContract.getGame(gameId)
       assert.equal(game.decision, True)
     })
@@ -194,7 +210,11 @@ describe('UniversalAdjudicationContract', () => {
       const challengeGameId = getGameIdFromProperty(falseProperty)
       await adjudicationContract.challenge(gameId, ['0x'], challengeGameId)
       await testPredicate.decideFalse(falseProperty.inputs)
-      await adjudicationContract.removeChallenge(gameId, challengeGameId)
+      await expect(
+        adjudicationContract.removeChallenge(gameId, challengeGameId)
+      )
+        .to.emit(adjudicationContract, 'ChallengeRemoved')
+        .withArgs(gameId, challengeGameId)
       const game = await adjudicationContract.getGame(gameId)
       assert.equal(game.challenges.length, 0)
     })

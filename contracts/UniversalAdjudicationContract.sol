@@ -15,6 +15,14 @@ contract UniversalAdjudicationContract {
     Utils utils;
 
     event AtomicPropositionDecided(bytes32 gameId, bool decision);
+    event NewPropertyClaimed(
+        bytes32 gameId,
+        types.Property property,
+        uint256 createdBlock
+    );
+    event GameChallenged(bytes32 gameId, bytes32 challengeGameId);
+    event GameDecided(bytes32 gameId, bool decision);
+    event ChallengeRemoved(bytes32 gameId, bytes32 challengeGameId);
 
     constructor(address _utilsAddress) public {
         utils = Utils(_utilsAddress);
@@ -39,6 +47,7 @@ contract UniversalAdjudicationContract {
 
         // store the claim
         instantiatedGames[gameId] = newGame;
+        emit NewPropertyClaimed(gameId, _claim, block.number);
     }
 
     function decideClaimToTrue(bytes32 _gameId) public {
@@ -59,6 +68,7 @@ contract UniversalAdjudicationContract {
         );
         // game should be decided true
         game.decision = types.Decision.True;
+        emit GameDecided(_gameId, true);
     }
 
     function decideClaimToFalse(bytes32 _gameId, bytes32 _challengingGameId)
@@ -85,6 +95,7 @@ contract UniversalAdjudicationContract {
         );
         // game should be decided false
         game.decision = types.Decision.False;
+        emit GameDecided(_gameId, false);
     }
 
     function removeChallenge(bytes32 _gameId, bytes32 _challengingGameId)
@@ -111,6 +122,7 @@ contract UniversalAdjudicationContract {
         );
         // remove challenge
         removeChallengefromArray(game.challenges, uint256(challengeIndex));
+        emit ChallengeRemoved(_gameId, _challengingGameId);
     }
 
     function setPredicateDecision(bytes32 _gameId, bool _decision) public {
@@ -150,6 +162,7 @@ contract UniversalAdjudicationContract {
             "_challenge isn't valid"
         );
         game.challenges.push(_challengingGameId);
+        emit GameChallenged(_gameId, _challengingGameId);
         return true;
     }
 
