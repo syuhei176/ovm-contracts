@@ -107,7 +107,7 @@ describe('UniversalAdjudicationContract', () => {
       await expect(
         adjudicationContract.challenge(gameId, ['0x'], challengingGameId)
       )
-        .to.emit(adjudicationContract, 'GameChallenged')
+        .to.emit(adjudicationContract, 'ClaimChallenged')
         .withArgs(gameId, challengingGameId)
       const game = await adjudicationContract.getGame(gameId)
 
@@ -135,7 +135,7 @@ describe('UniversalAdjudicationContract', () => {
       await expect(
         adjudicationContract.decideClaimToFalse(gameId, challengingGameId)
       )
-        .to.emit(adjudicationContract, 'GameDecided')
+        .to.emit(adjudicationContract, 'ClaimDecided')
         .withArgs(gameId, false)
       const game = await adjudicationContract.getGame(gameId)
       // game should be decided false
@@ -160,7 +160,7 @@ describe('UniversalAdjudicationContract', () => {
       // increase 10 blocks to pass dispute period
       await increaseBlocks(wallets, 10)
       await expect(adjudicationContract.decideClaimToTrue(gameId))
-        .to.emit(adjudicationContract, 'GameDecided')
+        .to.emit(adjudicationContract, 'ClaimDecided')
         .withArgs(gameId, true)
 
       const game = await adjudicationContract.getGame(gameId)
