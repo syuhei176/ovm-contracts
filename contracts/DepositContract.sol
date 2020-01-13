@@ -11,6 +11,7 @@ import {CommitmentContract} from "./CommitmentContract.sol";
 import {
     UniversalAdjudicationContract
 } from "./UniversalAdjudicationContract.sol";
+import "./Predicate/CompiledPredicate.sol";
 import "./Library/Deserializer.sol";
 
 contract DepositContract {
@@ -185,14 +186,22 @@ contract DepositContract {
     ) public returns (types.Exit memory) {
         types.Exit memory exit = Deserializer.deserializeExit(_exitProperty);
         bytes32 exitId = getExitId(exit);
+        // get payout contract address
+        address payout = CompiledPredicate(
+            exit
+                .stateUpdate
+                .stateObject
+                .predicateAddress
+        )
+            .payoutContractAddress();
         // Check that we are authorized to finalize this exit
         require(
             universalAdjudicationContract.isDecided(_exitProperty),
             "Exit must be decided after this block"
         );
         require(
-            exit.stateUpdate.stateObject.predicateAddress == msg.sender,
-            "finalizeExit must be called from StateObject contract"
+            payout == msg.sender,
+            "finalizeExit must be called from payout contract"
         );
         require(
             exit.stateUpdate.depositContractAddress == address(this),
@@ -202,7 +211,7 @@ contract DepositContract {
         removeDepositedRange(exit.subrange, _depositedRangeId);
         //Transfer tokens to its predicate
         uint256 amount = exit.subrange.end - exit.subrange.start;
-        erc20.transfer(exit.stateUpdate.stateObject.predicateAddress, amount);
+        erc20.transfer(payout, amount);
         emit ExitFinalized(exitId);
         return exit;
     }
