@@ -1,0 +1,3 @@
+def IncludedWithin(su, token, range, block) :=
+IncludedAt(su, su.0, su.1, block)
+and Equal(su.0, token) and IsContained(su.1, range)
