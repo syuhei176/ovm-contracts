@@ -1,0 +1,7 @@
+def checkpoint(su, subrange) := 
+IsContained(subrange, su.1)
+and for b in IsLessThan(su.2) {
+  for old_su in SU(b, su.0, subrange) {
+    old_su()
+  }
+}

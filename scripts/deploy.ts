@@ -249,6 +249,42 @@ const deployCompiledPredicates = async (
   )
   deployedPredicateTable['OwnershipPredicate'] = ownershipPredicate
 
+  const includedWithinPredicate = await deployOneCompiledPredicate(
+    'IncludedWithinPredicate',
+    [],
+    wallet,
+    uacAddress,
+    utilsAddress,
+    ethers.constants.AddressZero,
+    logicalConnectives,
+    atomicPredicates
+  )
+  deployedPredicateTable['IncludedWithinPredicate'] = includedWithinPredicate
+
+  const checkpointPredicate = await deployOneCompiledPredicate(
+    'CheckpointPredicate',
+    [includedWithinPredicate.deployedAddress],
+    wallet,
+    uacAddress,
+    utilsAddress,
+    ethers.constants.AddressZero,
+    logicalConnectives,
+    atomicPredicates
+  )
+  deployedPredicateTable['CheckpointPredicate'] = checkpointPredicate
+
+  const exitPredicate = await deployOneCompiledPredicate(
+    'ExitPredicate',
+    [checkpointPredicate.deployedAddress],
+    wallet,
+    uacAddress,
+    utilsAddress,
+    ethers.constants.AddressZero,
+    logicalConnectives,
+    atomicPredicates
+  )
+  deployedPredicateTable['ExitPredicate'] = exitPredicate
+
   return deployedPredicateTable
 }
 
