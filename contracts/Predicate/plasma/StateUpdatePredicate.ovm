@@ -1,4 +1,4 @@
 def stateUpdate(token, range, block_number, so) :=
-with Tx(token, subrange, block_number) as tx {
+Tx(token, subrange, block_number).any(tx ->
   so(tx)
-}
+)
