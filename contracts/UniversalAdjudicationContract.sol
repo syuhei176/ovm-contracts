@@ -10,8 +10,6 @@ import "./Predicate/LogicalConnective.sol";
 contract UniversalAdjudicationContract {
     uint256 DISPUTE_PERIOD = 7;
     mapping(bytes32 => types.ChallengeGame) public instantiatedGames;
-    mapping(bytes32 => bool) contradictions;
-    enum RemainingClaimIndex {Property, CounterProperty}
     Utils utils;
 
     event AtomicPropositionDecided(bytes32 gameId, bool decision);
