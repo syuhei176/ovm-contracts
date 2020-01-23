@@ -1,0 +1,6 @@
+def isValidBlock(num) := 
+  IncludedAt(num).all(tx ->
+    IncludedAt(tx.input_block_number).any(prev_tx -> 
+      IsValidStateTransition(prev_tx.2, tx)
+    )
+  )
