@@ -417,6 +417,9 @@ const deploy = async (): Promise<void> => {
     const config = await deployContracts(wallet)
     console.log('initialization config JSON file')
     console.log(config)
+    const outPath = path.join(__dirname, '../..', 'out.config.json')
+    console.log('write config into ', outPath)
+    fs.writeFileSync(outPath, JSON.stringify(config))
   }, 5_000)
 }
 
