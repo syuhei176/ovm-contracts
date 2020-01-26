@@ -21,7 +21,7 @@ contract ThereExistsSuchThatQuantifier is LogicalConnective {
         bytes[] calldata _challengeInputs,
         types.Property calldata _challnge
     ) external view returns (bool) {
-        // challenge should be for(, , not(p))
+        // challenge must be for(, , not(p))
         require(
             _challnge.predicateAddress == forAddress,
             "challenge must be ForAllSuchThat"

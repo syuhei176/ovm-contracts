@@ -21,7 +21,7 @@ contract OrPredicate is LogicalConnective {
         bytes[] calldata _challengeInputs,
         types.Property calldata _challnge
     ) external view returns (bool) {
-        // challenge should be and(not(p[0]), not(p[1]), ...)
+        // challenge must be and(not(p[0]), not(p[1]), ...)
         require(
             _challnge.predicateAddress == andAddress,
             "challenge must be And"
