@@ -7,82 +7,81 @@ import {
   solidity
 } from 'ethereum-waffle'
 import * as MockChallenge from '../build/contracts/MockChallenge.json'
-import * as OrPredicate from '../build/contracts/OrPredicate.json'
+import * as ThereExistsSuchThatQuantifier from '../build/contracts/ThereExistsSuchThatQuantifier.json'
 import * as ethers from 'ethers'
-import { OvmProperty, randomAddress, encodeProperty } from './helpers/utils'
+import {
+  OvmProperty,
+  randomAddress,
+  encodeProperty,
+  encodeString
+} from './helpers/utils'
 
 chai.use(solidity)
 chai.use(require('chai-as-promised'))
 const { expect, assert } = chai
 
-describe('OrPredicate', () => {
+describe('ThereExistsSuchThatQuantifier', () => {
   let provider = createMockProvider()
   let wallets = getWallets(provider)
   let wallet = wallets[0]
-  let orPredicate: ethers.Contract
+  let thereExistsSuchThatQuantifier: ethers.Contract
   const boolAddress = randomAddress()
   const notAddress = randomAddress()
-  const andAddress = randomAddress()
+  const forAddress = randomAddress()
   let mockChallenge: ethers.Contract
-  let orProperty: OvmProperty
+  let thereProperty: OvmProperty
 
   beforeEach(async () => {
     mockChallenge = await deployContract(wallet, MockChallenge, [])
-    orPredicate = await deployContract(wallet, OrPredicate, [
-      notAddress,
-      andAddress
-    ])
-    orProperty = {
-      predicateAddress: orPredicate.address,
+    thereExistsSuchThatQuantifier = await deployContract(
+      wallet,
+      ThereExistsSuchThatQuantifier,
+      [notAddress, forAddress]
+    )
+    thereProperty = {
+      predicateAddress: thereExistsSuchThatQuantifier.address,
       inputs: [
+        encodeString(''),
+        encodeString('var'),
         encodeProperty({
           predicateAddress: boolAddress,
           inputs: ['0x01']
-        }),
-        encodeProperty({
-          predicateAddress: boolAddress,
-          inputs: ['0x02']
         })
       ]
     }
   })
 
   describe('isValidChallenge', () => {
-    it('suceed to challenge or(a, b) with and(not(a), not(b))', async () => {
+    it('suceed to challenge any(a) with for(not(a))', async () => {
       const challengeProperty = {
-        predicateAddress: andAddress,
+        predicateAddress: forAddress,
         inputs: [
+          encodeString(''),
+          encodeString('var'),
           encodeProperty({
             predicateAddress: notAddress,
             inputs: [
               encodeProperty({
                 predicateAddress: boolAddress,
                 inputs: ['0x01']
-              })
-            ]
-          }),
-          encodeProperty({
-            predicateAddress: notAddress,
-            inputs: [
-              encodeProperty({
-                predicateAddress: boolAddress,
-                inputs: ['0x02']
               })
             ]
           })
         ]
       }
       const result = await mockChallenge.isValidChallenge(
-        orProperty,
+        thereProperty,
         [],
         challengeProperty
       )
       assert.isTrue(result)
     })
-    it('fail to challenge or(a, b) with and(not(a), b)', async () => {
+    it('fail to challenge with invalid variable', async () => {
       const challengeProperty = {
-        predicateAddress: andAddress,
+        predicateAddress: forAddress,
         inputs: [
+          encodeString(''),
+          encodeString('invalid'),
           encodeProperty({
             predicateAddress: notAddress,
             inputs: [
@@ -91,30 +90,19 @@ describe('OrPredicate', () => {
                 inputs: ['0x01']
               })
             ]
-          }),
-          encodeProperty({
-            predicateAddress: boolAddress,
-            inputs: ['0x02']
           })
         ]
       }
       await expect(
-        mockChallenge.isValidChallenge(orProperty, [], challengeProperty)
-      ).to.be.revertedWith('inputs must be same')
+        mockChallenge.isValidChallenge(thereProperty, [], challengeProperty)
+      ).to.be.revertedWith('variable must be same')
     })
-    it('fail to challenge or(a, b) with or(not(a), not(b))', async () => {
+    it('fail to challenge with invalid property', async () => {
       const challengeProperty = {
-        predicateAddress: orPredicate.address,
+        predicateAddress: forAddress,
         inputs: [
-          encodeProperty({
-            predicateAddress: notAddress,
-            inputs: [
-              encodeProperty({
-                predicateAddress: boolAddress,
-                inputs: ['0x01']
-              })
-            ]
-          }),
+          encodeString(''),
+          encodeString('var'),
           encodeProperty({
             predicateAddress: notAddress,
             inputs: [
@@ -126,10 +114,9 @@ describe('OrPredicate', () => {
           })
         ]
       }
-
       await expect(
-        mockChallenge.isValidChallenge(orProperty, [], challengeProperty)
-      ).to.be.revertedWith('challenge must be And')
+        mockChallenge.isValidChallenge(thereProperty, [], challengeProperty)
+      ).to.be.revertedWith('inputs must be same')
     })
   })
 })
