@@ -1,6 +1,12 @@
-def checkpoint(su, subrange) := 
-  IsContained(subrange, su.1)
-  and IsLessThan(su.2).all(b -> 
-    SU(b, su.0,subrange).all(old_su -> old_su())
-  )
+from lib import LessThan
+from lib import IncludedAt
 
+@library
+@quantifier("so.block${b}.range${token},RANGE,${range}")
+def SU(so, token, range, b) :=
+  IncludedAt(so, token, range, b).any()
+
+def checkpoint(su) := 
+  LessThan(su.2).all(b -> 
+    SU(su.0, su.1, b).all(old_su -> old_su())
+  )

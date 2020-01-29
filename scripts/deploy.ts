@@ -175,7 +175,7 @@ const deployOneCompiledPredicate = async (
   logicalConnectives: { [key: string]: string },
   atomicPredicates: { [key: string]: string }
 ): Promise<CompiledPredicate> => {
-  console.log(`Deploying ${name}`)
+  console.log(`Deploying ${name}`, extraArgs)
   const compiledPredicateJson = JSON.parse(
     fs
       .readFileSync(path.join(__dirname, `../../contracts/${name}.json`))
@@ -249,21 +249,9 @@ const deployCompiledPredicates = async (
   )
   deployedPredicateTable['OwnershipPredicate'] = ownershipPredicate
 
-  const includedWithinPredicate = await deployOneCompiledPredicate(
-    'IncludedWithinPredicate',
-    [],
-    wallet,
-    uacAddress,
-    utilsAddress,
-    ethers.constants.AddressZero,
-    logicalConnectives,
-    atomicPredicates
-  )
-  deployedPredicateTable['IncludedWithinPredicate'] = includedWithinPredicate
-
   const checkpointPredicate = await deployOneCompiledPredicate(
     'CheckpointPredicate',
-    [includedWithinPredicate.deployedAddress],
+    [],
     wallet,
     uacAddress,
     utilsAddress,

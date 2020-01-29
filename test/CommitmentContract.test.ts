@@ -7,8 +7,8 @@ import {
 } from 'ethereum-waffle'
 import * as CommitmentContract from '../build/contracts/CommitmentContract.json'
 import * as ethers from 'ethers'
-import { Bytes } from 'wakkanay/dist/types/Codables'
-import { Keccak256 } from 'wakkanay/dist/verifiers/hash/Keccak256'
+import { Bytes } from '@cryptoeconomicslab/primitives'
+import { Keccak256 } from '@cryptoeconomicslab/hash'
 
 chai.use(solidity)
 chai.use(require('chai-as-promised'))
