@@ -20,7 +20,6 @@ import {
   prefix,
   OvmProperty
 } from './helpers/utils'
-import { FreeVariable } from 'wakkanay/dist/ovm/types'
 chai.use(solidity)
 chai.use(require('chai-as-promised'))
 const { expect, assert } = chai

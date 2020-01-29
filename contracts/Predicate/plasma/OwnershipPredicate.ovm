@@ -1,1 +1,3 @@
-def ownership(owner, tx) := SignedBy(tx, owner)
+from lib import SignedBy
+
+def ownership(owner, tx) := SignedBy(tx, owner).any()

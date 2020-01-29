@@ -21,7 +21,7 @@ import * as IsContainedPredicate from '../build/contracts/IsContainedPredicate.j
 import * as MockTxPredicate from '../build/contracts/MockCompiledPredicate.json'
 import * as OwnershipPayout from '../build/contracts/OwnershipPayout.json'
 import { randomAddress, encodeString } from '../test/helpers/utils'
-
+import { compileJSON } from './compileProperties'
 import Provider = ethers.providers.Provider
 import fs from 'fs'
 import path from 'path'
@@ -202,14 +202,16 @@ const deployOneCompiledPredicate = async (
     payoutContractAddress
   )
   await tx.wait()
-  const source = fs.readFileSync(
-    path.join(__dirname, `../../../contracts/Predicate/plasma/${name}.ovm`)
+  const propertyData = compileJSON(
+    path.join(__dirname, `../../../contracts/Predicate/plasma`),
+    name
   )
+
   console.log(`${name} Deployed`)
 
   return {
     deployedAddress: compiledPredicates.address,
-    source: source.toString()
+    source: propertyData
   }
 }
 
@@ -249,21 +251,9 @@ const deployCompiledPredicates = async (
   )
   deployedPredicateTable['OwnershipPredicate'] = ownershipPredicate
 
-  const includedWithinPredicate = await deployOneCompiledPredicate(
-    'IncludedWithinPredicate',
-    [],
-    wallet,
-    uacAddress,
-    utilsAddress,
-    ethers.constants.AddressZero,
-    logicalConnectives,
-    atomicPredicates
-  )
-  deployedPredicateTable['IncludedWithinPredicate'] = includedWithinPredicate
-
   const checkpointPredicate = await deployOneCompiledPredicate(
     'CheckpointPredicate',
-    [includedWithinPredicate.deployedAddress],
+    [],
     wallet,
     uacAddress,
     utilsAddress,

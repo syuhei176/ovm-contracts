@@ -21,6 +21,9 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@cryptoeconomicslab/ovm-ethereum-generator": "^0.2.6",
+    "@cryptoeconomicslab/ovm-parser": "^0.2.5",
+    "@cryptoeconomicslab/ovm-transpiler": "^0.2.5",
     "@openzeppelin/contracts": "^2.3.0",
     "@types/chai": "^4.2.5",
     "@types/jest": "^24.0.23",
@@ -31,16 +34,18 @@
     "ethers": "^4.0.33",
     "husky": "^3.1.0",
     "mocha": "^6.2.0",
-    "@cryptoeconomicslab/ovm-compiler": "^0.2.3",
     "prettier": "^1.19.1",
     "prettier-plugin-solidity": "^1.0.0-alpha.34",
     "ts-node": "^8.5.0",
-    "typescript": "^3.7.2",
-    "wakkanay": "git+https://github.com/cryptoeconomicslab/wakkanay.git"
+    "typescript": "^3.7.2"
   },
   "husky": {
     "hooks": {
       "pre-commit": "npm run prettier"
     }
+  },
+  "dependencies": {
+    "@cryptoeconomicslab/hash": "0.0.10",
+    "@cryptoeconomicslab/primitives": "0.0.10"
   }
 }

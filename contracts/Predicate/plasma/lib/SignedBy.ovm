@@ -1,0 +1,3 @@
+@library
+@quantifier("signatures,KEY,${m}")
+def SignedBy(sig, m, signer) := IsValidSignature(m, signer, sig, $secp256k1)
