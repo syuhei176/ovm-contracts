@@ -21,7 +21,7 @@ import * as IsContainedPredicate from '../build/contracts/IsContainedPredicate.j
 import * as MockTxPredicate from '../build/contracts/MockCompiledPredicate.json'
 import * as OwnershipPayout from '../build/contracts/OwnershipPayout.json'
 import { randomAddress, encodeString } from '../test/helpers/utils'
-
+import { compileJSON } from './compileProperties'
 import Provider = ethers.providers.Provider
 import fs from 'fs'
 import path from 'path'
@@ -175,7 +175,7 @@ const deployOneCompiledPredicate = async (
   logicalConnectives: { [key: string]: string },
   atomicPredicates: { [key: string]: string }
 ): Promise<CompiledPredicate> => {
-  console.log(`Deploying ${name}`, extraArgs)
+  console.log(`Deploying ${name}`)
   const compiledPredicateJson = JSON.parse(
     fs
       .readFileSync(path.join(__dirname, `../../contracts/${name}.json`))
@@ -202,14 +202,16 @@ const deployOneCompiledPredicate = async (
     payoutContractAddress
   )
   await tx.wait()
-  const source = fs.readFileSync(
-    path.join(__dirname, `../../../contracts/Predicate/plasma/${name}.ovm`)
+  const propertyData = compileJSON(
+    path.join(__dirname, `../../../contracts/Predicate/plasma`),
+    name
   )
+
   console.log(`${name} Deployed`)
 
   return {
     deployedAddress: compiledPredicates.address,
-    source: source.toString()
+    source: propertyData
   }
 }
 

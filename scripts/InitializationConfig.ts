@@ -1,6 +1,6 @@
 export interface CompiledPredicate {
   deployedAddress: string
-  source: string
+  source: any
 }
 
 export interface InitilizationConfig {
