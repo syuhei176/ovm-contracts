@@ -9,9 +9,7 @@ contract Utils {
         pure
         returns (address addr)
     {
-        assembly {
-            addr := mload(add(addressBytes, 20))
-        }
+        addr = abi.decode(addressBytes, (address));
     }
 
     function bytesToBytes32(bytes memory source)
@@ -32,7 +30,7 @@ contract Utils {
         pure
         returns (uint256 result)
     {
-        result = bytesToUintWithOffset(source, 0);
+        result = abi.decode(source, (uint256));
     }
 
     function bytesToRange(bytes memory _bytes)
@@ -40,24 +38,7 @@ contract Utils {
         pure
         returns (types.Range memory)
     {
-        uint256 start = bytesToUintWithOffset(_bytes, 0);
-        uint256 end = bytesToUintWithOffset(_bytes, 32);
-        return types.Range({start: start, end: end});
-    }
-
-    function bytesToUintWithOffset(bytes memory _bytes, uint256 _start)
-        private
-        pure
-        returns (uint256 result)
-    {
-        require(
-            _bytes.length >= (_start + 32),
-            "_bytes do not have enough length"
-        );
-
-        assembly {
-            result := mload(add(add(_bytes, 0x20), _start))
-        }
+        return abi.decode(_bytes, (types.Range));
     }
 
     function getPropertyId(types.Property memory _property)

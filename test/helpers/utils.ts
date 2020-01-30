@@ -24,19 +24,6 @@ export function getGameIdFromProperty(ovmProperty: OvmProperty) {
   )
 }
 
-function numberToHex(n: number) {
-  const h = n.toString(16)
-  if (h.length % 2 == 1) {
-    return '0x0' + h
-  } else {
-    return '0x' + h
-  }
-}
-
-function numberTo32Bytes(n: number) {
-  return padZeros(arrayify(numberToHex(n)), 32)
-}
-
 function concatHex(hexArr: string[]): string {
   return hexlify(concat(hexArr.map(arrayify)))
 }
@@ -46,11 +33,11 @@ export function prefix(_prefix: string, _source: string): string {
 }
 
 export function encodeRange(start: number, end: number) {
-  return hexlify(concat([numberTo32Bytes(start), numberTo32Bytes(end)]))
+  return abi.encode(['tuple(uint256, uint256)'], [[start, end]])
 }
 
 export function encodeInteger(int: number) {
-  return hexlify(numberTo32Bytes(int))
+  return abi.encode(['uint256'], [int])
 }
 
 export function encodeProperty(property: OvmProperty) {
@@ -77,7 +64,7 @@ export function encodeConstant(str: string) {
 }
 
 export function encodeAddress(address: string) {
-  return hexlify(padZeros(arrayify(address), 32))
+  return abi.encode(['address'], [address])
 }
 
 export function randomAddress() {

@@ -75,7 +75,7 @@ contract DepositContract {
         bytes[] memory inputs = new bytes[](4);
         inputs[0] = abi.encode(address(this));
         inputs[1] = abi.encode(depositRange);
-        inputs[2] = abi.encodePacked(getLatestPlasmaBlockNumber());
+        inputs[2] = abi.encode(getLatestPlasmaBlockNumber());
         inputs[3] = abi.encode(_initialState);
         types.Property memory stateUpdate = types.Property({ // Fixme: when StateUpdatePredicate is merged
             predicateAddress: stateUpdatePredicateContract,
