@@ -23,12 +23,6 @@ contract AndPredicate is LogicalConnective {
         utils = Utils(utilsAddress);
     }
 
-    struct TestPredicateInput {
-        uint256 value;
-    }
-
-    event ValueDecided(bool decision, types.Property property);
-
     function createPropertyFromInput(bytes[] memory _input)
         public
         view
@@ -78,7 +72,5 @@ contract AndPredicate is LogicalConnective {
             utils.getPropertyId(property),
             true
         );
-
-        emit ValueDecided(true, property);
     }
 }

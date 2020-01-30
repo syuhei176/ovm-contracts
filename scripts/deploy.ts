@@ -16,6 +16,8 @@ import * as PlasmaETH from '../build/contracts/PlasmaETH.json'
 import * as AndPredicate from '../build/contracts/AndPredicate.json'
 import * as NotPredicate from '../build/contracts/NotPredicate.json'
 import * as ForAllSuchThatQuantifier from '../build/contracts/ForAllSuchThatQuantifier.json'
+import * as OrPredicate from '../build/contracts/OrPredicate.json'
+import * as ThereExistsSuchThatQuantifier from '../build/contracts/ThereExistsSuchThatQuantifier.json'
 import * as IsValidSignaturePredicate from '../build/contracts/IsValidSignaturePredicate.json'
 import * as IsContainedPredicate from '../build/contracts/IsContainedPredicate.json'
 import * as MockTxPredicate from '../build/contracts/MockCompiledPredicate.json'
@@ -106,6 +108,27 @@ const deployLogicalConnective = async (
   logicalConnectiveAddressTable['ForAllSuchThat'] =
     forAllSuchThatQuantifier.address
   console.log('ForAllSuchThatPredicate Deployed')
+
+  console.log('Deploying OrPredicate')
+  const orPredicate = await deployContract(
+    OrPredicate,
+    wallet,
+    notPredicate.address,
+    andPredicate.address
+  )
+  logicalConnectiveAddressTable['Or'] = orPredicate.address
+  console.log('OrPredicate Deployed')
+
+  console.log('Deploying ThereExistsSuchThatQuantifier')
+  const thereExistsSuchThatQuantifier = await deployContract(
+    ThereExistsSuchThatQuantifier,
+    wallet,
+    notPredicate.address,
+    forAllSuchThatQuantifier.address
+  )
+  logicalConnectiveAddressTable['ThereExistsSuchThat'] =
+    thereExistsSuchThatQuantifier.address
+  console.log('ThereExistsSuchThatQuantifier Deployed')
 
   return logicalConnectiveAddressTable
 }
