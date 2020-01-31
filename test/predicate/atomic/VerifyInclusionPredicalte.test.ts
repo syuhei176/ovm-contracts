@@ -10,6 +10,7 @@ import * as MockCommitmentContract from '../../../build/contracts/MockCommitment
 import * as Utils from '../../../build/contracts/Utils.json'
 import * as VerifyInclusionPredicate from '../../../build/contracts/VerifyInclusionPredicate.json'
 import * as ethers from 'ethers'
+import { encodeRange, encodeAddress } from '../../helpers/utils'
 const abi = new ethers.utils.AbiCoder()
 
 chai.use(solidity)
@@ -49,8 +50,8 @@ describe('VerifyInclusionPredicate', () => {
 
   describe('decide', () => {
     const leaf = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('leaf'))
-    const token = ethers.constants.AddressZero
-    const range = abi.encode(['tuple(uint256, uint256)'], [[100, 200]])
+    const token = encodeAddress(ethers.constants.AddressZero)
+    const range = encodeRange(100, 200)
     const inclusionProof = abi.encode(
       [
         'tuple(tuple(address, uint256, tuple(bytes32, address)[]), tuple(uint256, uint256, tuple(bytes32, uint256)[]))'

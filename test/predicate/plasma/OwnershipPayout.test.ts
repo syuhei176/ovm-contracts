@@ -18,8 +18,10 @@ import {
   encodeProperty,
   randomAddress,
   OvmProperty,
-  encodeInteger
+  encodeInteger,
+  encodeAddress
 } from '../../helpers/utils'
+import { encode } from 'punycode'
 
 chai.use(solidity)
 chai.use(require('chai-as-promised'))
@@ -85,7 +87,7 @@ describe('OwnershipPayout', () => {
     it('succeed', async () => {
       const stateObject = {
         predicateAddress: mockOwnershipPredicate.address,
-        inputs: [wallets[0].address]
+        inputs: [encodeAddress(wallets[0].address)]
       }
 
       await ownershipPayout.finalizeExit(
@@ -101,7 +103,7 @@ describe('OwnershipPayout', () => {
     it('throw exception', async () => {
       const stateObject = {
         predicateAddress: mockOwnershipPredicate.address,
-        inputs: [wallets[1].address]
+        inputs: [encodeAddress(wallets[1].address)]
       }
 
       await expect(

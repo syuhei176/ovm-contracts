@@ -12,7 +12,7 @@ import * as ECRecover from '../../../build/contracts/ECRecover.json'
 import * as IsValidSignaturePredicate from '../../../build/contracts/IsValidSignaturePredicate.json'
 import * as ethers from 'ethers'
 import { hexlify, toUtf8Bytes } from 'ethers/utils'
-import { encodeConstant } from '../../helpers/utils'
+import { encodeConstant, encodeAddress } from '../../helpers/utils'
 
 chai.use(solidity)
 chai.use(require('chai-as-promised'))
@@ -62,7 +62,7 @@ describe('IsValidSignaturePredicate', () => {
       await isValidSignaturePredicate.decideTrue([
         message,
         signature,
-        address,
+        encodeAddress(address),
         verifierType
       ])
     })
