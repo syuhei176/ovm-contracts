@@ -166,6 +166,9 @@ const deployAtomicPredicates = async (
   atomicPredicateAddressTable['Equal'] = randomAddress()
   atomicPredicateAddressTable['VerifyInclusion'] = randomAddress()
   atomicPredicateAddressTable['IsSameAmount'] = randomAddress()
+  atomicPredicateAddressTable['IsConcatenatedWith'] = randomAddress()
+  atomicPredicateAddressTable['IsValidHash'] = randomAddress()
+  atomicPredicateAddressTable['IsStored'] = randomAddress()
 
   return atomicPredicateAddressTable
 }
@@ -222,6 +225,9 @@ const deployOneCompiledPredicate = async (
     atomicPredicates['IsContained'],
     atomicPredicates['VerifyInclusion'],
     atomicPredicates['IsSameAmount'],
+    atomicPredicates['IsConcatenatedWith'],
+    atomicPredicates['IsValidHash'],
+    atomicPredicates['IsStored'],
     payoutContractAddress
   )
   await tx.wait()
