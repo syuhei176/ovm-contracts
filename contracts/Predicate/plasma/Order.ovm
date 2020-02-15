@@ -7,11 +7,6 @@ def Range(n, s, e) := IsLessThan(s, n) and IsLessThan(n, e)
 def Stored(value, bucket, key) := IsStored(bucket, key, value)
 
 @library
-@quantifier("proof.block${b}.range${token},RANGE,${range}")
-def IncludedAt(proof, leaf, token, range, root) :=
-  VerifyInclusion(leaf, token, range, proof, root)
-
-@library
 @quantifier("so.block${b}.range${token},ITER,${zero}")
 def SU(so, token, b) :=
   Stored(token, b).any()
